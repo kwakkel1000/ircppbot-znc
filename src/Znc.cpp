@@ -1,5 +1,5 @@
 #include "include/Znc.h"
-#include "../../include/core/Global.h"
+#include "../../../include/core/Global.h"
 #include <iostream>
 #include <algorithm>
 #include <iostream>
