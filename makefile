@@ -1,6 +1,6 @@
 CC = g++
-CFLAGS = -march=native -pipe #-O#n for nondebug
-CXXFLAGS = $(CFLAGS) -fPIC -Wall -g #-g << debugging
+CFLAGS = -march=native -pipe -O3 #-O#n for nondebug
+CXXFLAGS = $(CFLAGS) -fPIC -Wall #-g << debugging
 LIBS =
 FLAGS =
 MAKEFLAGS = -j5
