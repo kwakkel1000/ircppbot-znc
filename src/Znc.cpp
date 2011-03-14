@@ -1,10 +1,9 @@
 #include "include/Znc.h"
-#include "../../../include/core/Global.h"
+#include <core/Global.h>
 #include <iostream>
 #include <algorithm>
-#include <iostream>
-#include <fstream>
 #include <boost/algorithm/string.hpp>
+#include <fstream>
 
 extern "C" ModuleInterface* create()
 {

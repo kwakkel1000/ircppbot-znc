@@ -5,6 +5,8 @@ CXX_LDFLAGS 	=
 LIBRARIES 		= $(CXX_SYSLIBS)
 
 MODULE_NAME		= Znc
+OBJECTS			= $(MODULE_NAME).o
+OUTPUT			= $(MODULE_NAME).so
 
 default: $(OUTPUT)
 Debug: all
