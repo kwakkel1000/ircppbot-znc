@@ -1,32 +1,23 @@
-CC = g++
-CFLAGS = -march=native -pipe -O3 #-O#n for nondebug
-CXXFLAGS = $(CFLAGS) -fPIC -Wall #-g << debugging
-LIBS =
-FLAGS =
-MAKEFLAGS = -j5
+include ../MODULE_CONFIG
 
-module_name=Znc
+CXX_CFLAGS 		=
+CXX_LDFLAGS 	=
+LIBRARIES 		= $(CXX_SYSLIBS)
 
-TOPDIR=../../../
-SRCDIR=src/
-LIBDIR=$(TOPDIR).libs/
-objects=$(SRCDIR)$(module_name).o
-output=$(module_name).so
+MODULE_NAME		= Znc
 
-default: $(output)
+default: $(OUTPUT)
 Debug: all
 Release: all
 all: default
 
 
-$(output): $(objects)
-	$(CC) -shared -o $(LIBDIR)$(@) $(objects) $(CXXFLAGS) $(FLAGS) $(LIBS)
+$(OUTPUT): $(SRC_DIR)$(OBJECTS)
+	$(CXX_LINK) -o $(LIB_DIR)$@ $(OBJECTS) $(LIBRARIES)
 
 cleanDebug: clean
 cleanRelease: clean
 clean:
-	rm -f $(SRCDIR)$(objects) $(LIBDIR)$(output)
+	rm -f $(OBJECTS) $(LIB_DIR)$(OUTPUT)
 
 cleanall: clean
-
-

@@ -23,14 +23,14 @@ Znc::Znc()
 Znc::~Znc()
 {
     stop();
-	Global::Instance().get_IrcData().DelConsumer(D);
-    delete D;
+	Global::Instance().get_IrcData().DelConsumer(mpDataInterface);
+    delete mpDataInterface;
 }
-void Znc::Init()
+void Znc::Init(DataInterface* pData)
 {
-    D = new Data();
-    D->Init(true, false, false, true);
-    Global::Instance().get_IrcData().AddConsumer(D);
+	mpDataInterface = pData;
+	mpDataInterface->Init(true, false, false, true);
+    Global::Instance().get_IrcData().AddConsumer(mpDataInterface);
 	ReadFile("znc.conf");
     timerlong();
 }
@@ -39,7 +39,7 @@ void Znc::Init()
 void Znc::stop()
 {
     run = false;
-    D->stop();
+    mpDataInterface->stop();
     std::cout << "Znc::stop" << std::endl;
     raw_parse_thread->join();
     std::cout << "raw_parse_thread stopped" << std::endl;
@@ -61,7 +61,7 @@ void Znc::parse_raw()
     std::vector< std::string > data;
     while(run)
     {
-        data = D->GetRawQueue();
+        data = mpDataInterface->GetRawQueue();
         ParseData(data);
     }
 }
@@ -71,7 +71,7 @@ void Znc::parse_privmsg()
     /*std::vector< std::string > data;
     while(run)
     {
-        data = D->GetPrivmsgQueue();
+        data = mpDataInterface->GetPrivmsgQueue();
         //PRIVMSG(data, channelbottrigger);
     }*/
 }

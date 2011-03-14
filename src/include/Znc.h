@@ -1,16 +1,14 @@
 #ifndef Znc_H
 #define Znc_H
-
-#include "../../../../include/interfaces/ModuleInterface.h"
-#include "../../../../include/core/Data.h"
-#include "../../../../include/core/ModuleBase.h"
-#include <iostream>
-#include <algorithm>
+#include <core/ModuleBase.h>
+#include <interfaces/DataInterface.h>
 #include <string>
 #include <vector>
 #include <map>
+#include <boost/shared_ptr.hpp>
+#include <boost/thread/thread.hpp>
 
-class Data;
+class DataInterface;
 class Znc : public ModuleBase
 {
 public:
@@ -18,12 +16,12 @@ public:
     ~Znc();
     void read();
     void stop();
-    void Init();
+    void Init(DataInterface* pData);
     void timerrun();
 
 private:
-    Data * D;
 
+    DataInterface* mpDataInterface;
     void parse_raw();
     void parse_privmsg();
     void ParseData(std::vector< std::string > data);
