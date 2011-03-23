@@ -25,12 +25,14 @@ Znc::~Znc()
 	Global::Instance().get_IrcData().DelConsumer(mpDataInterface);
     delete mpDataInterface;
 }
+
 void Znc::Init(DataInterface* pData)
 {
 	mpDataInterface = pData;
-	mpDataInterface->Init(true, false, false, true);
+	mpDataInterface->Init(false, false, false, true);
     Global::Instance().get_IrcData().AddConsumer(mpDataInterface);
-	ReadFile("znc.conf");
+    MaxUsers = 50;		//config file
+	ReadFile(Global::Instance().get_ConfigReader().GetString("zncfile"));
     timerlong();
 }
 
@@ -40,8 +42,6 @@ void Znc::stop()
     run = false;
     mpDataInterface->stop();
     std::cout << "Znc::stop" << std::endl;
-    raw_parse_thread->join();
-    std::cout << "raw_parse_thread stopped" << std::endl;
     privmsg_parse_thread->join();
     std::cout << "privmsg_parse_thread stopped" << std::endl;
 }
@@ -49,54 +49,122 @@ void Znc::stop()
 void Znc::read()
 {
     run = true;
-    assert(!raw_parse_thread);
-    raw_parse_thread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&Znc::parse_raw, this)));
     assert(!privmsg_parse_thread);
     privmsg_parse_thread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&Znc::parse_privmsg, this)));
 }
 
-void Znc::parse_raw()
+void Znc::parse_privmsg()
 {
     std::vector< std::string > data;
     while(run)
     {
-        data = mpDataInterface->GetRawQueue();
-        ParseData(data);
+        data = mpDataInterface->GetPrivmsgQueue();
+        PRIVMSG(data, Global::Instance().get_ConfigReader().GetString("znctrigger"));
     }
 }
 
-void Znc::parse_privmsg()
-{
-    /*std::vector< std::string > data;
-    while(run)
-    {
-        data = mpDataInterface->GetPrivmsgQueue();
-        //PRIVMSG(data, channelbottrigger);
-    }*/
-}
 
-
-void Znc::ParseData(std::vector< std::string > data)
+void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, std::vector< std::string > args, int chantrigger)
 {
-    /*cout << "Test" << endl;
-    if (data.size() >= 1)
+    std::cout << "Znc" << std::endl;
+    UsersInterface& U = Global::Instance().get_Users();
+    std::string auth = U.GetAuth(nick);
+    if (args.size() == 0)
     {
-		std::string returnstr = "PRIVMSG #blubs :" + data[0];
-		if (data.size() >= 2)
+		if (boost::iequals(command, "stats"))
 		{
-			for (unsigned int i = 1; i < data.size(); i++)
-			{
-				returnstr = returnstr + " " + data[i];
-			}
+			overwatch(command, command, chan, nick, auth, args);
+			Stats(chan, nick, auth, 0);
 		}
-		returnstr = returnstr + "\r\n";
-		SendLowPriority(returnstr);
-    }*/
+    }
+    if (args.size() == 1)
+    {
+		if (boost::iequals(command, "search"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			Search(chan, nick, auth, args[0], 0);
+		}
+		if (boost::iequals(command, "info"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			Info(chan, nick, auth, args[0], 0);
+		}
+    }
 }
 
-
-void Znc::ParsePrivmsg(std::vector<std::string> data, std::string command, std::string chan, std::vector< std::string > args, int chantrigger)
+void Znc::Stats(std::string mChan, std::string mNick, std::string mAuth, int oas)
 {
+	std::string nUsers = convertInt(znc_user_nick.size());
+	std::string maxUsers = convertInt(MaxUsers);
+	std::string returnstr = "PRIVMSG " + mChan + " :";
+	returnstr = returnstr + globalsettings["Listener"];
+	returnstr = returnstr + ": ";
+	if (znc_user_nick.size() < MaxUsers)
+	{
+		returnstr = returnstr + nUsers;
+		returnstr = returnstr + "/";
+		returnstr = returnstr + maxUsers;
+	}
+	if (znc_user_nick.size() >= MaxUsers)
+	{
+		returnstr = returnstr + "FULL";
+	}
+	returnstr = returnstr + "\r\n";
+	Send(returnstr);
+}
+
+void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
+{
+    size_t searchpos;
+	for (unsigned int it_i = 0; it_i < znc_user_nick.size(); it_i++)
+	{
+		searchpos = znc_user_nick[it_i].find(mSearchString);
+		if (searchpos != std::string::npos)
+		{
+			std::string returnstr = "PRIVMSG " + mChan + " :";
+			returnstr = returnstr + globalsettings["Listener"];
+			returnstr = returnstr + ": ";
+			returnstr = returnstr + znc_user_nick[it_i];
+			returnstr = returnstr + "\r\n";
+			Send(returnstr);
+		}
+	}
+}
+
+void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
+{
+    size_t searchpos;
+	for (unsigned int it_i = 0; it_i < znc_user_nick.size(); it_i++)
+	{
+		searchpos = znc_user_nick[it_i].find(mSearchString);
+		if (searchpos != std::string::npos)
+		{
+			std::string returnstr = "PRIVMSG " + mChan + " :";
+			returnstr = returnstr + globalsettings["Listener"];
+			returnstr = returnstr + ": ";
+			returnstr = returnstr + znc_user_nick[it_i];
+			returnstr = returnstr + "\r\n";
+			Send(returnstr);
+			returnstr = "PRIVMSG " + mChan + " :";
+			returnstr = returnstr + globalsettings["Listener"];
+			returnstr = returnstr + ": Nick:  ";
+			returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Nick"];
+			returnstr = returnstr + "\r\n";
+			Send(returnstr);
+			returnstr = "PRIVMSG " + mChan + " :";
+			returnstr = returnstr + globalsettings["Listener"];
+			returnstr = returnstr + ": Ident:  ";
+			returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Ident"];
+			returnstr = returnstr + "\r\n";
+			Send(returnstr);
+			returnstr = "PRIVMSG " + mChan + " :";
+			returnstr = returnstr + globalsettings["Listener"];
+			returnstr = returnstr + ": Server:  ";
+			returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Server"];
+			returnstr = returnstr + "\r\n";
+			Send(returnstr);
+		}
+	}
 }
 
 
@@ -197,6 +265,18 @@ bool Znc::ReadFile( std::string filename )
 						boost::trim(setting_vector[0]);
 						boost::trim(setting_vector[1]);
 						setting[setting_vector[0]] = setting_vector[1];
+					}
+                }
+                else
+                {
+					std::vector< std::string > setting_vector;
+					boost::split( setting_vector, line, boost::is_any_of("="), boost::token_compress_on );
+					if (setting_vector.size() >= 2)
+					{
+						//std::cout << "line:" << line << std::endl;
+						boost::trim(setting_vector[0]);
+						boost::trim(setting_vector[1]);
+						globalsettings[setting_vector[0]] = setting_vector[1];
 					}
                 }
 

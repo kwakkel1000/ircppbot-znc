@@ -22,10 +22,12 @@ public:
 private:
 
     DataInterface* mpDataInterface;
-    void parse_raw();
     void parse_privmsg();
-    void ParseData(std::vector< std::string > data);
-    void ParsePrivmsg(std::vector<std::string> data, std::string command, std::string chan, std::vector< std::string > args, int chantrigger);
+    void ParsePrivmsg(std::string nick, std::string command, std::string chan, std::vector< std::string > args, int chantrigger);
+
+	void Stats(std::string mChan, std::string mNick, std::string mAuth, int oas);
+	void Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
+	void Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
 
     void timerlong();
     std::vector<int> timer_sec;
@@ -35,13 +37,15 @@ private:
     int longtime;
 
     bool run;
-    boost::shared_ptr<boost::thread> raw_parse_thread;
+    unsigned int MaxUsers;
     boost::shared_ptr<boost::thread> privmsg_parse_thread;
 
 
     std::map< std::string, std::map< std::string, std::string > > znc_user_setting_map;
     std::map< std::string, std::map< std::string, std::string > >::iterator znc_user_setting_it;
     std::vector< std::string > znc_user_nick;
+
+    std::map< std::string, std::string > globalsettings;
     bool ReadFile( std::string filename );
 };
 
