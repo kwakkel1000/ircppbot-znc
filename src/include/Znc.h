@@ -48,6 +48,7 @@ private:
     std::vector< std::string > znc_user_nick;
 
     std::map< std::string, std::string > globalsettings;
+    void SaveConfig();
     bool ReadFile( std::string filename );
     std::string generatePwd(int length);
 };

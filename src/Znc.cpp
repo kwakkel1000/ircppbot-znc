@@ -110,8 +110,9 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqNick, std::string mReqAuth, int oas)
 {
 	std::string pass = generatePwd(8);
-	std::string returnstr = "PRIVMSG *admin :adduser " + mReqNick + " " + pass + "irc.onlinegamesnet.net\r\n";
+	std::string returnstr = "PRIVMSG *admin :adduser " + mReqNick + " " + pass + " irc.onlinegamesnet.net\r\n";
 	Send(returnstr);
+	SaveConfig();
 	returnstr = "PRIVMSG " + mChan + " :";
 	returnstr = returnstr + globalsettings["Listener"];
 	returnstr = returnstr + ": added ";
@@ -126,6 +127,7 @@ void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::
 {
 	std::string returnstr = "PRIVMSG *admin :deluser " + mReqNick + "\r\n";
 	Send(returnstr);
+	SaveConfig();
 	returnstr = "PRIVMSG " + mChan + " :";
 	returnstr = returnstr + globalsettings["Listener"];
 	returnstr = returnstr + ": deleted ";
@@ -207,6 +209,14 @@ void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::str
 			Send(returnstr);
 		}
 	}
+}
+
+void Znc::SaveConfig()
+{
+	std::string returnstr = "PRIVMSG *status :SaveConfig\r\n";
+	Send(returnstr);
+	usleep(1000000);
+	ReadFile(Global::Instance().get_ConfigReader().GetString("zncfile"));
 }
 
 
