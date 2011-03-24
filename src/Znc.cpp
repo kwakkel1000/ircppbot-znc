@@ -76,6 +76,11 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 			overwatch(command, command, chan, nick, auth, args);
 			Stats(chan, nick, auth, 0);
 		}
+		if (boost::iequals(command, "read"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			ReadFile(Global::Instance().get_ConfigReader().GetString("zncfile"));
+		}
     }
     if (args.size() == 1)
     {
@@ -89,7 +94,44 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 			overwatch(command, command, chan, nick, auth, args);
 			Info(chan, nick, auth, args[0], 0);
 		}
+		if (boost::iequals(command, "adduser"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			AddUser(chan, nick, auth, args[0], args[0], 0);
+		}
+		if (boost::iequals(command, "deluser"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			DelUser(chan, nick, auth, args[0], args[0], 0);
+		}
     }
+}
+
+void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqNick, std::string mReqAuth, int oas)
+{
+	std::string pass = generatePwd(8);
+	std::string returnstr = "PRIVMSG *admin :adduser " + mReqNick + " " + pass + "irc.onlinegamesnet.net\r\n";
+	Send(returnstr);
+	returnstr = "PRIVMSG " + mChan + " :";
+	returnstr = returnstr + globalsettings["Listener"];
+	returnstr = returnstr + ": added ";
+	returnstr = returnstr + mReqNick;
+	returnstr = returnstr + " : ";
+	returnstr = returnstr + pass;
+	returnstr = returnstr + "\r\n";
+	Send(returnstr);
+}
+
+void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqNick, std::string mReqAuth, int oas)
+{
+	std::string returnstr = "PRIVMSG *admin :deluser " + mReqNick + "\r\n";
+	Send(returnstr);
+	returnstr = "PRIVMSG " + mChan + " :";
+	returnstr = returnstr + globalsettings["Listener"];
+	returnstr = returnstr + ": deleted ";
+	returnstr = returnstr + mReqNick;
+	returnstr = returnstr + "\r\n";
+	Send(returnstr);
 }
 
 void Znc::Stats(std::string mChan, std::string mNick, std::string mAuth, int oas)
@@ -318,3 +360,21 @@ bool Znc::ReadFile( std::string filename )
 }
 
 
+
+std::string Znc::generatePwd(int length)
+{
+  std::string out="";
+  for(int i=0; i<length; i++)
+  {
+    char chr=rand()%52;
+    if(chr<=25)
+    {
+		out+='A'+chr;
+    }
+    else
+    {
+    	out+='a'+chr-26;
+    }
+  }
+  return out;
+}
