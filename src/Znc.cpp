@@ -31,8 +31,8 @@ void Znc::Init(DataInterface* pData)
 	mpDataInterface = pData;
 	mpDataInterface->Init(false, false, false, true);
     Global::Instance().get_IrcData().AddConsumer(mpDataInterface);
-    MaxUsers = 50;		//config file
-	ReadFile(Global::Instance().get_ConfigReader().GetString("zncfile"));
+    MaxUsers = convertString(Global::Instance().get_ConfigReader().GetString("znc_max_users"));
+	ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
     timerlong();
 }
 
@@ -59,7 +59,7 @@ void Znc::parse_privmsg()
     while(run)
     {
         data = mpDataInterface->GetPrivmsgQueue();
-        PRIVMSG(data, Global::Instance().get_ConfigReader().GetString("znctrigger"));
+        PRIVMSG(data, Global::Instance().get_ConfigReader().GetString("znc_trigger"));
     }
 }
 
@@ -79,7 +79,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		if (boost::iequals(command, "read"))
 		{
 			overwatch(command, command, chan, nick, auth, args);
-			ReadFile(Global::Instance().get_ConfigReader().GetString("zncfile"));
+			ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
 		}
     }
     if (args.size() == 1)
@@ -204,7 +204,16 @@ void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::str
 			returnstr = "PRIVMSG " + mChan + " :";
 			returnstr = returnstr + globalsettings["Listener"];
 			returnstr = returnstr + ": Server:  ";
-			returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Server"];
+			std::vector< std::string > server_vector;
+			boost::split( server_vector, znc_user_setting_map[znc_user_nick[it_i]]["Server"], boost::is_any_of(" "), boost::token_compress_on );
+			if(server_vector.size()>=1)
+			{
+				returnstr = returnstr + server_vector[0];
+			}
+			if(server_vector.size()>=2)
+			{
+				returnstr = returnstr + " " + server_vector[1];
+			}
 			returnstr = returnstr + "\r\n";
 			Send(returnstr);
 		}
@@ -217,6 +226,16 @@ void Znc::SaveConfig()
 	Send(returnstr);
 	usleep(1000000);
 	ReadFile(Global::Instance().get_ConfigReader().GetString("zncfile"));
+}
+
+void Znc::JoinChannel(std::string mNick)
+{
+	std::string returnstr = "PRIVMSG *send_raw :"
+	returnstr = returnstr + mNick;
+	returnstr = returnstr + "JOIN";
+	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_idle_channel");
+	returnstr = returnstr + "\r\n";
+	Send(returnstr);
 }
 
 

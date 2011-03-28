@@ -49,6 +49,7 @@ private:
 
     std::map< std::string, std::string > globalsettings;
     void SaveConfig();
+    void JoinChannel(std::string mNick);
     bool ReadFile( std::string filename );
     std::string generatePwd(int length);
 };
