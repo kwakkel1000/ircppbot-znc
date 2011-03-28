@@ -225,12 +225,12 @@ void Znc::SaveConfig()
 	std::string returnstr = "PRIVMSG *status :SaveConfig\r\n";
 	Send(returnstr);
 	usleep(1000000);
-	ReadFile(Global::Instance().get_ConfigReader().GetString("zncfile"));
+	ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
 }
 
 void Znc::JoinChannel(std::string mNick)
 {
-	std::string returnstr = "PRIVMSG *send_raw :"
+	std::string returnstr = "PRIVMSG *send_raw :";
 	returnstr = returnstr + mNick;
 	returnstr = returnstr + "JOIN";
 	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_idle_channel");
