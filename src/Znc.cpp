@@ -246,7 +246,7 @@ void Znc::JoinChannel(std::string mNick)
 {
 	std::string returnstr = "PRIVMSG *send_raw :";
 	returnstr = returnstr + mNick;
-	returnstr = returnstr + "JOIN";
+	returnstr = returnstr + " JOIN ";
 	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_idle_channel");
 	returnstr = returnstr + "\r\n";
 	Send(returnstr);
