@@ -150,14 +150,23 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 			ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[1], 0);
 		}
     }
-    /*if (args.size() >= 2)
+    if (args.size() >= 2)
     {
 		if (boost::iequals(command, "simul"))
 		{
 			overwatch(command, command, chan, nick, auth, args);
-			Search(chan, nick, auth, args[0], 0);
+			std::string simulString;
+			for (unsigned int j = 1; j < args.size()-1; j++)
+			{
+				simulString = simulString + args[j] + " ";
+			}
+			if (args.size() > 1)
+			{
+				simulString = simulString + args[args.size()-1];
+			}
+			SimulUser(chan, nick, auth, args[0], simulString, 0);
 		}
-    }*/
+    }
 }
 
 void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas)
@@ -173,7 +182,6 @@ void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, s
 	returnstr = returnstr + pass;
 	returnstr = returnstr + "\r\n";
 	Send(returnstr);
-	JoinChannel(mNick);
 }
 
 void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas)
@@ -196,7 +204,7 @@ void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::
 	returnstr = returnstr + mReqAuth;
 	returnstr = returnstr + "\r\n";
 	Send(returnstr);
-	JoinChannel(mNick);
+	JoinChannel(mReqAuth);
 }
 
 void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, int oas)
@@ -249,12 +257,17 @@ void Znc::VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int 
 	}
 }
 
-void Znc::SimulAll(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
+void Znc::SimulAll(std::string mChan, std::string mNick, std::string mAuth, std::string mSimulString, int oas)
 {
 	for (unsigned int i = 0; i < znc_user_nick.size(); i++)
 	{
-		Simul(znc_user_nick[i], mSearchString);
+		Simul(znc_user_nick[i], mSimulString);
 	}
+}
+
+void Znc::SimulUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSimulString, int oas)
+{
+	Simul(mReqAuth, mSimulString);
 }
 
 void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)

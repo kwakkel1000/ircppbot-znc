@@ -32,6 +32,7 @@ private:
 	void JoinAll(std::string mChan, std::string mNick, std::string mAuth, int oas);
 	void VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int oas);
 	void SimulAll(std::string mChan, std::string mNick, std::string mAuth, std::string mSimulString, int oas);
+	void SimulUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSimulString, int oas);
 	void Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
 	void Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
 
