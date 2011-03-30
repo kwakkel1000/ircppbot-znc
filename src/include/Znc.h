@@ -28,6 +28,7 @@ private:
 	void AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqNick, std::string mReqAuth, int oas);
 	void DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqNick, std::string mReqAuth, int oas);
 	void Stats(std::string mChan, std::string mNick, std::string mAuth, int oas);
+	void JoinAll(std::string mChan, std::string mNick, std::string mAuth, int oas);
 	void Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
 	void Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
 

@@ -76,6 +76,11 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 			overwatch(command, command, chan, nick, auth, args);
 			Stats(chan, nick, auth, 0);
 		}
+		if (boost::iequals(command, "joinall"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			JoinAll(chan, nick, auth, 0);
+		}
 		if (boost::iequals(command, "read"))
 		{
 			overwatch(command, command, chan, nick, auth, args);
@@ -114,13 +119,14 @@ void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::
 	Send(returnstr);
 	SaveConfig();
 	returnstr = "PRIVMSG " + mChan + " :";
-	returnstr = returnstr + globalsettings["Listener"];
+	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 	returnstr = returnstr + ": added ";
 	returnstr = returnstr + mReqNick;
 	returnstr = returnstr + " : ";
 	returnstr = returnstr + pass;
 	returnstr = returnstr + "\r\n";
 	Send(returnstr);
+	JoinChannel(mNick);
 }
 
 void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqNick, std::string mReqAuth, int oas)
@@ -129,7 +135,7 @@ void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::
 	Send(returnstr);
 	SaveConfig();
 	returnstr = "PRIVMSG " + mChan + " :";
-	returnstr = returnstr + globalsettings["Listener"];
+	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 	returnstr = returnstr + ": deleted ";
 	returnstr = returnstr + mReqNick;
 	returnstr = returnstr + "\r\n";
@@ -141,7 +147,7 @@ void Znc::Stats(std::string mChan, std::string mNick, std::string mAuth, int oas
 	std::string nUsers = convertInt(znc_user_nick.size());
 	std::string maxUsers = convertInt(MaxUsers);
 	std::string returnstr = "PRIVMSG " + mChan + " :";
-	returnstr = returnstr + globalsettings["Listener"];
+	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 	returnstr = returnstr + ": ";
 	if (znc_user_nick.size() < MaxUsers)
 	{
@@ -157,6 +163,14 @@ void Znc::Stats(std::string mChan, std::string mNick, std::string mAuth, int oas
 	Send(returnstr);
 }
 
+void Znc::JoinAll(std::string mChan, std::string mNick, std::string mAuth, int oas)
+{
+	for (unsigned int i = 0; i < znc_user_nick.size(); i++)
+	{
+		JoinChannel(znc_user_nick[i]);
+	}
+}
+
 void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
     size_t searchpos;
@@ -166,7 +180,7 @@ void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::s
 		if (searchpos != std::string::npos)
 		{
 			std::string returnstr = "PRIVMSG " + mChan + " :";
-			returnstr = returnstr + globalsettings["Listener"];
+			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 			returnstr = returnstr + ": ";
 			returnstr = returnstr + znc_user_nick[it_i];
 			returnstr = returnstr + "\r\n";
@@ -184,25 +198,25 @@ void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::str
 		if (searchpos != std::string::npos)
 		{
 			std::string returnstr = "PRIVMSG " + mChan + " :";
-			returnstr = returnstr + globalsettings["Listener"];
+			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 			returnstr = returnstr + ": ";
 			returnstr = returnstr + znc_user_nick[it_i];
 			returnstr = returnstr + "\r\n";
 			Send(returnstr);
 			returnstr = "PRIVMSG " + mChan + " :";
-			returnstr = returnstr + globalsettings["Listener"];
+			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 			returnstr = returnstr + ": Nick:  ";
 			returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Nick"];
 			returnstr = returnstr + "\r\n";
 			Send(returnstr);
 			returnstr = "PRIVMSG " + mChan + " :";
-			returnstr = returnstr + globalsettings["Listener"];
+			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 			returnstr = returnstr + ": Ident:  ";
 			returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Ident"];
 			returnstr = returnstr + "\r\n";
 			Send(returnstr);
 			returnstr = "PRIVMSG " + mChan + " :";
-			returnstr = returnstr + globalsettings["Listener"];
+			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 			returnstr = returnstr + ": Server:  ";
 			std::vector< std::string > server_vector;
 			boost::split( server_vector, znc_user_setting_map[znc_user_nick[it_i]]["Server"], boost::is_any_of(" "), boost::token_compress_on );
