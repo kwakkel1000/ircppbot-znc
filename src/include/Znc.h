@@ -25,10 +25,13 @@ private:
     void parse_privmsg();
     void ParsePrivmsg(std::string nick, std::string command, std::string chan, std::vector< std::string > args, int chantrigger);
 
-	void AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqNick, std::string mReqAuth, int oas);
-	void DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqNick, std::string mReqAuth, int oas);
+	void ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas);
+	void AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas);
+	void DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, int oas);
 	void Stats(std::string mChan, std::string mNick, std::string mAuth, int oas);
 	void JoinAll(std::string mChan, std::string mNick, std::string mAuth, int oas);
+	void VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int oas);
+	void SimulAll(std::string mChan, std::string mNick, std::string mAuth, std::string mSimulString, int oas);
 	void Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
 	void Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
 
@@ -51,6 +54,8 @@ private:
     std::map< std::string, std::string > globalsettings;
     void SaveConfig();
     void JoinChannel(std::string mNick);
+    void Voice(std::string mNick);
+    void Simul(std::string mNick, std::string mSimulString);
     bool ReadFile( std::string filename );
     std::string generatePwd(int length);
 };

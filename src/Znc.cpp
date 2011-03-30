@@ -81,10 +81,32 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 			overwatch(command, command, chan, nick, auth, args);
 			JoinAll(chan, nick, auth, 0);
 		}
+		if (boost::iequals(command, "voiceall"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			VoiceAll(chan, nick, auth, 0);
+		}
 		if (boost::iequals(command, "read"))
 		{
 			overwatch(command, command, chan, nick, auth, args);
 			ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
+		}
+    }
+    if (args.size() >= 1)
+    {
+		if (boost::iequals(command, "simulall"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			std::string simulString;
+			for (unsigned int j = 0; j < args.size()-1; j++)
+			{
+				simulString = simulString + args[j] + " ";
+			}
+			if (args.size() > 0)
+			{
+				simulString = simulString + args[args.size()-1];
+			}
+			SimulAll(chan, nick, auth, simulString, 0);
 		}
     }
     if (args.size() == 1)
@@ -102,42 +124,90 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		if (boost::iequals(command, "adduser"))
 		{
 			overwatch(command, command, chan, nick, auth, args);
-			AddUser(chan, nick, auth, args[0], args[0], 0);
+			AddUser(chan, nick, auth, U.GetAuth(args[0]), args[0], 0);
 		}
 		if (boost::iequals(command, "deluser"))
 		{
 			overwatch(command, command, chan, nick, auth, args);
-			DelUser(chan, nick, auth, args[0], args[0], 0);
+			DelUser(chan, nick, auth, args[0], 0);
+		}
+		if (boost::iequals(command, "resetpass"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[0], 0);
 		}
     }
+    if (args.size() == 2)
+    {
+		if (boost::iequals(command, "adduser"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			AddUser(chan, nick, auth, U.GetAuth(args[0]), args[1], 0);
+		}
+		if (boost::iequals(command, "resetpass"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[1], 0);
+		}
+    }
+    /*if (args.size() >= 2)
+    {
+		if (boost::iequals(command, "simul"))
+		{
+			overwatch(command, command, chan, nick, auth, args);
+			Search(chan, nick, auth, args[0], 0);
+		}
+    }*/
 }
 
-void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqNick, std::string mReqAuth, int oas)
+void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas)
 {
 	std::string pass = generatePwd(8);
-	std::string returnstr = "PRIVMSG *admin :adduser " + mReqNick + " " + pass + " irc.onlinegamesnet.net\r\n";
+	std::string returnstr = "PRIVMSG *admin :set Password " + mReqAuth + " " + pass + "\r\n";
 	Send(returnstr);
-	SaveConfig();
-	returnstr = "PRIVMSG " + mChan + " :";
+	returnstr = "NOTICE " + mSendNick + " :";
 	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-	returnstr = returnstr + ": added ";
-	returnstr = returnstr + mReqNick;
-	returnstr = returnstr + " : ";
+	returnstr = returnstr + ": password for ";
+	returnstr = returnstr + mReqAuth;
+	returnstr = returnstr + " is now ";
 	returnstr = returnstr + pass;
 	returnstr = returnstr + "\r\n";
 	Send(returnstr);
 	JoinChannel(mNick);
 }
 
-void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqNick, std::string mReqAuth, int oas)
+void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas)
 {
-	std::string returnstr = "PRIVMSG *admin :deluser " + mReqNick + "\r\n";
+	std::string pass = generatePwd(8);
+	std::string returnstr = "PRIVMSG *admin :adduser " + mReqAuth + " " + pass + " irc.onlinegamesnet.net\r\n";
+	Send(returnstr);
+	SaveConfig();
+	returnstr = "PRIVMSG " + mSendNick + " :";
+	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+	returnstr = returnstr + ": added ";
+	returnstr = returnstr + mReqAuth;
+	returnstr = returnstr + " with password ";
+	returnstr = returnstr + pass;
+	returnstr = returnstr + "\r\n";
+	Send(returnstr);
+	returnstr = "PRIVMSG " + mChan + " :";
+	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+	returnstr = returnstr + ": added ";
+	returnstr = returnstr + mReqAuth;
+	returnstr = returnstr + "\r\n";
+	Send(returnstr);
+	JoinChannel(mNick);
+}
+
+void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, int oas)
+{
+	std::string returnstr = "PRIVMSG *admin :deluser " + mReqAuth + "\r\n";
 	Send(returnstr);
 	SaveConfig();
 	returnstr = "PRIVMSG " + mChan + " :";
 	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 	returnstr = returnstr + ": deleted ";
-	returnstr = returnstr + mReqNick;
+	returnstr = returnstr + mReqAuth;
 	returnstr = returnstr + "\r\n";
 	Send(returnstr);
 }
@@ -168,6 +238,22 @@ void Znc::JoinAll(std::string mChan, std::string mNick, std::string mAuth, int o
 	for (unsigned int i = 0; i < znc_user_nick.size(); i++)
 	{
 		JoinChannel(znc_user_nick[i]);
+	}
+}
+
+void Znc::VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int oas)
+{
+	for (unsigned int i = 0; i < znc_user_nick.size(); i++)
+	{
+		Voice(znc_user_nick[i]);
+	}
+}
+
+void Znc::SimulAll(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
+{
+	for (unsigned int i = 0; i < znc_user_nick.size(); i++)
+	{
+		Simul(znc_user_nick[i], mSearchString);
 	}
 }
 
@@ -248,6 +334,26 @@ void Znc::JoinChannel(std::string mNick)
 	returnstr = returnstr + mNick;
 	returnstr = returnstr + " JOIN ";
 	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_idle_channel");
+	returnstr = returnstr + "\r\n";
+	Send(returnstr);
+}
+
+void Znc::Voice(std::string mNick)
+{
+	std::string returnstr = "PRIVMSG chanserv ";
+	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_idle_channel");
+	returnstr = returnstr + " voice ";
+	returnstr = returnstr + mNick;
+	returnstr = returnstr + "\r\n";
+	Send(returnstr);
+}
+
+void Znc::Simul(std::string mNick, std::string mSimulString)
+{
+	std::string returnstr = "PRIVMSG *send_raw :";
+	returnstr = returnstr + mNick;
+	returnstr = returnstr + " ";
+	returnstr = returnstr + mSimulString;
 	returnstr = returnstr + "\r\n";
 	Send(returnstr);
 }
