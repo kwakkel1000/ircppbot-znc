@@ -7,3 +7,4 @@ conf/*.ini
 .svn*
 *_build_log.html
 *.layout
+*.txt

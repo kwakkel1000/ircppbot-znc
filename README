@@ -1,3 +1,7 @@
 building:
+mkdir [topdir]conf/Znc/
+cp conf.ini.example [topdir]conf/Znc/conf.ini
+add conf/Znc/conf.ini to [topdir]conf/conf.ini  under the [config] section
+cp addusertext.txt.example [topdir]addusertext.txt
 make clean
 make all

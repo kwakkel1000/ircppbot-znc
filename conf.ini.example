@@ -1,0 +1,11 @@
+[znc]
+znc_addusertext=addusertext.txt
+znc_idle_channel=#channel
+znc_max_users=50
+znc_trigger=?
+znc_global_trigger=?
+znc_irc_server=irc.server.tld port
+znc_config_file=/home/znc_9009/.znc/configs/znc.conf
+znc_local_trigger=z9
+znc_port=9009
+

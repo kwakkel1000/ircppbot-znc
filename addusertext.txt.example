@@ -1,0 +1,8 @@
+%creater% created a bouncer for you! The password: > %password% <. Please use these commands exactly as they stand here:
+/server -a serverip/dns -p %port% -g YournameZNC -w %auth%:%password% -d YournameZNC
+/as addmask *@rdns
+/as addmask *@ip
+/server YournameZNC
+You can find our webinterface here: http://webinterface.page.tld:%port%/
+here some extra text like support page
+and some more useless info
