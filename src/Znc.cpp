@@ -300,17 +300,25 @@ void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, s
 	int oaccess = U.GetOaccess(mNick);
     if (oaccess >= oas)
     {
-		std::string pass = generatePwd(8);
-		std::string returnstr = "PRIVMSG *admin :set Password " + mReqAuth + " " + pass + "\r\n";
-		Send(returnstr);
-		returnstr = "NOTICE " + mSendNick + " :";
-		returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-		returnstr = returnstr + ": password for ";
-		returnstr = returnstr + mReqAuth;
-		returnstr = returnstr + " is now ";
-		returnstr = returnstr + pass;
-		returnstr = returnstr + "\r\n";
-		Send(returnstr);
+    	if (mReqAuth != "NULL")
+    	{
+			std::string pass = generatePwd(8);
+			std::string returnstr = "PRIVMSG *admin :set Password " + mReqAuth + " " + pass + "\r\n";
+			Send(returnstr);
+			returnstr = "NOTICE " + mSendNick + " :";
+			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+			returnstr = returnstr + ": password for ";
+			returnstr = returnstr + mReqAuth;
+			returnstr = returnstr + " is now ";
+			returnstr = returnstr + pass;
+			returnstr = returnstr + "\r\n";
+			Send(returnstr);
+    	}
+		else
+		{
+			std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("user_not_authed", U.GetLanguage(mNick)) + "\r\n";
+			Send(returnstring);
+		}
     }
     else
     {
@@ -325,25 +333,33 @@ void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::
 	int oaccess = U.GetOaccess(mNick);
     if (oaccess >= oas)
     {
-		std::string pass = generatePwd(8);
-		std::string returnstr = "PRIVMSG *admin :adduser " + mReqAuth + " " + pass + " irc.onlinegamesnet.net\r\n";
-		Send(returnstr);
-		SaveConfig();
-		returnstr = "NOTICE " + mSendNick + " :";
-		returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-		returnstr = returnstr + ": added ";
-		returnstr = returnstr + mReqAuth;
-		returnstr = returnstr + " with password ";
-		returnstr = returnstr + pass;
-		returnstr = returnstr + "\r\n";
-		Send(returnstr);
-		returnstr = "PRIVMSG " + mChan + " :";
-		returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-		returnstr = returnstr + ": added ";
-		returnstr = returnstr + mReqAuth;
-		returnstr = returnstr + "\r\n";
-		Send(returnstr);
-		JoinChannel(mReqAuth);
+    	if (mReqAuth != "NULL")
+    	{
+			std::string pass = generatePwd(8);
+			std::string returnstr = "PRIVMSG *admin :adduser " + mReqAuth + " " + pass + " irc.onlinegamesnet.net\r\n";
+			Send(returnstr);
+			SaveConfig();
+			returnstr = "NOTICE " + mSendNick + " :";
+			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+			returnstr = returnstr + ": added ";
+			returnstr = returnstr + mReqAuth;
+			returnstr = returnstr + " with password ";
+			returnstr = returnstr + pass;
+			returnstr = returnstr + "\r\n";
+			Send(returnstr);
+			returnstr = "PRIVMSG " + mChan + " :";
+			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+			returnstr = returnstr + ": added ";
+			returnstr = returnstr + mReqAuth;
+			returnstr = returnstr + "\r\n";
+			Send(returnstr);
+			JoinChannel(mReqAuth);
+    	}
+		else
+		{
+			std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("user_not_authed", U.GetLanguage(mNick)) + "\r\n";
+			Send(returnstring);
+		}
     }
     else
     {
@@ -584,6 +600,7 @@ void Znc::znccommands(std::string mNick, std::string mAuth, int oas)
 		returnstring = returnstring + "access\r\n";
 		Send(returnstring);
 		std::vector< std::string > binds = DatabaseData::Instance().GetBindVectorByBindName(command_table);
+		sort (binds.begin(), binds.end());
 		for (unsigned int binds_it = 0; binds_it < binds.size(); binds_it++)
 		{
 			std::string bind_access = convertInt(DatabaseData::Instance().GetAccessByBindNameAndBind(command_table, binds[binds_it]));
