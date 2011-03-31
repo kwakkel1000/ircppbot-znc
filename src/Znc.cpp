@@ -603,13 +603,16 @@ void Znc::znccommands(std::string mNick, std::string mAuth, int oas)
 		sort (binds.begin(), binds.end());
 		for (unsigned int binds_it = 0; binds_it < binds.size(); binds_it++)
 		{
-			std::string bind_access = convertInt(DatabaseData::Instance().GetAccessByBindNameAndBind(command_table, binds[binds_it]));
-			std::string bind_command = DatabaseData::Instance().GetCommandByBindNameAndBind(command_table, binds[binds_it]);
-			returnstring = "NOTICE " + mNick + " :";
-			returnstring = returnstring + fillspace(binds[binds_it], 20);
-			returnstring = returnstring + fillspace(bind_command, 20);
-			returnstring = returnstring + bind_access + "\r\n";
-			Send(returnstring);
+			if (binds[binds_it] != "")
+			{
+				std::string bind_access = convertInt(DatabaseData::Instance().GetAccessByBindNameAndBind(command_table, binds[binds_it]));
+				std::string bind_command = DatabaseData::Instance().GetCommandByBindNameAndBind(command_table, binds[binds_it]);
+				returnstring = "NOTICE " + mNick + " :";
+				returnstring = returnstring + fillspace(binds[binds_it], 20);
+				returnstring = returnstring + fillspace(bind_command, 20);
+				returnstring = returnstring + bind_access + "\r\n";
+				Send(returnstring);
+			}
 		}
     }
 }
