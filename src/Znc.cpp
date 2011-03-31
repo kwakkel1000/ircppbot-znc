@@ -34,6 +34,7 @@ void Znc::Init(DataInterface* pData)
     Global::Instance().get_IrcData().AddConsumer(mpDataInterface);
     MaxUsers = convertString(Global::Instance().get_ConfigReader().GetString("znc_max_users"));
 	ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
+	ReadAddUserText(Global::Instance().get_ConfigReader().GetString("znc_addusertext"));
     timerlong();
     command_table = "ZncCommands";
     DatabaseData::Instance().DatabaseData::AddBinds(command_table);
@@ -336,16 +337,21 @@ void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::
     	if (mReqAuth != "NULL")
     	{
 			std::string pass = generatePwd(8);
-			std::string returnstr = "PRIVMSG *admin :adduser " + mReqAuth + " " + pass + " irc.onlinegamesnet.net\r\n";
+			std::string returnstr = "PRIVMSG *admin :adduser " + mReqAuth + " " + pass + " " + Global::Instance().get_ConfigReader().GetString("znc_irc_server") + "\r\n";
 			Send(returnstr);
 			SaveConfig();
-			returnstr = "NOTICE " + mSendNick + " :";
-			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-			returnstr = returnstr + ": added ";
-			returnstr = returnstr + mReqAuth;
-			returnstr = returnstr + " with password ";
-			returnstr = returnstr + pass;
-			returnstr = returnstr + "\r\n";
+			for (unsigned int AddUserText_it = 0; AddUserText_it < AddUserText.size(); AddUserText_it++)
+			{
+				std::string tmpstring = AddUserText[AddUserText_it];
+				tmpstring = Global::Instance().get_Reply().irc_reply_replace(tmpstring, "%creater%", mNick);
+				tmpstring = Global::Instance().get_Reply().irc_reply_replace(tmpstring, "%password%", pass);
+				tmpstring = Global::Instance().get_Reply().irc_reply_replace(tmpstring, "%auth%", mReqAuth);
+				tmpstring = Global::Instance().get_Reply().irc_reply_replace(tmpstring, "%port%", Global::Instance().get_ConfigReader().GetString("znc_port"));
+				returnstr = "PRIVMSG " + mSendNick + " :";
+				returnstr = returnstr + tmpstring;
+				returnstr = returnstr + "\r\n";
+				Send(returnstr);
+			}
 			Send(returnstr);
 			returnstr = "PRIVMSG " + mChan + " :";
 			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
@@ -802,6 +808,36 @@ bool Znc::ReadFile( std::string filename )
         std::cout << "Could not open file '" << filename << "'" << std::endl;
     }
 
+    return false;
+}
+
+bool Znc::ReadAddUserText( std::string filename )
+{
+    std::cout << "ReadAddUserText readfile: " << filename << std::endl;
+    AddUserText.clear();
+    std::string line;
+    std::ifstream configfile;
+    int linenr = 0;
+
+    configfile.open(filename.c_str());
+    if (configfile.is_open())
+    {
+        while (configfile.good())
+        {
+            getline(configfile,line);
+            linenr++;
+
+            boost::trim(line);
+            AddUserText.push_back(line);
+
+        }
+        configfile.close();
+        return true;
+    }
+    else
+    {
+        std::cout << "Could not open file '" << filename << "'" << std::endl;
+    }
     return false;
 }
 

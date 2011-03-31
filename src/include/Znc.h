@@ -46,6 +46,7 @@ private:
 
     bool run;
     std::string command_table;
+    std::vector< std::string > AddUserText;
     unsigned int MaxUsers;
     boost::shared_ptr<boost::thread> privmsg_parse_thread;
 
@@ -60,6 +61,7 @@ private:
     void Voice(std::string mNick);
     void Simul(std::string mNick, std::string mSimulString);
     bool ReadFile( std::string filename );
+    bool ReadAddUserText( std::string filename );
     std::string generatePwd(int length);
 };
 
