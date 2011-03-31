@@ -151,40 +151,11 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 			overwatch(bind_command, command, chan, nick, auth, args);
 		}
 
-		if (local && !global)		//local only
+		//simulall
+		if (bind_command == "simulall")
 		{
-
-		}
-
-		/*if (args.size() == 0)
-		{
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "stats") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "stats"))
+			if (args.size() >= 1)
 			{
-				overwatch(command, command, chan, nick, auth, args);
-				Stats(chan, nick, auth, 0);
-			}
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "joinall") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "joinall"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
-				JoinAll(chan, nick, auth, 0);
-			}
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "voiceall") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "voiceall"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
-				VoiceAll(chan, nick, auth, 0);
-			}
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "read") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "read"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
-				ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
-			}
-		}*/
-
-		if (args.size() >= 1)
-		{
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "simulall") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "simulall"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
 				std::string simulString;
 				for (unsigned int j = 0; j < args.size()-1; j++)
 				{
@@ -194,55 +165,20 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 				{
 					simulString = simulString + args[args.size()-1];
 				}
-				SimulAll(chan, nick, auth, simulString, 0);
+				SimulAll(chan, nick, auth, simulString, bind_access);
 			}
+			else
+			{
+				//help(bind_command);
+			}
+			overwatch(bind_command, command, chan, nick, auth, args);
 		}
-		if (args.size() == 1)
+
+		//simul
+		if (bind_command == "simul")
 		{
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "search") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "search"))
+			if (args.size() >= 2)
 			{
-				overwatch(command, command, chan, nick, auth, args);
-				Search(chan, nick, auth, args[0], 0);
-			}
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "info") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "info"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
-				Info(chan, nick, auth, args[0], 0);
-			}
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "adduser"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
-				AddUser(chan, nick, auth, U.GetAuth(args[0]), args[0], 0);
-			}
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "deluser"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
-				DelUser(chan, nick, auth, args[0], 0);
-			}
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "resetpass"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
-				ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[0], 0);
-			}
-		}
-		if (args.size() == 2)
-		{
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "adduser"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
-				AddUser(chan, nick, auth, U.GetAuth(args[0]), args[1], 0);
-			}
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "resetpass"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
-				ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[1], 0);
-			}
-		}
-		if (args.size() >= 2)
-		{
-			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "simul") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "simul"))
-			{
-				overwatch(command, command, chan, nick, auth, args);
 				std::string simulString;
 				for (unsigned int j = 1; j < args.size()-1; j++)
 				{
@@ -252,7 +188,94 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 				{
 					simulString = simulString + args[args.size()-1];
 				}
-				SimulUser(chan, nick, auth, args[0], simulString, 0);
+				SimulUser(chan, nick, auth, args[0], simulString, bind_access);
+			}
+			else
+			{
+				//help(bind_command);
+			}
+			overwatch(bind_command, command, chan, nick, auth, args);
+		}
+
+		//search
+		if (bind_command == "search")
+		{
+			if (args.size() == 1)
+			{
+				Search(chan, nick, auth, args[0], bind_access);
+			}
+			else
+			{
+				//help(bind_command);
+			}
+			overwatch(bind_command, command, chan, nick, auth, args);
+		}
+
+		//info
+		if (bind_command == "info")
+		{
+			if (args.size() == 1)
+			{
+				Info(chan, nick, auth, args[0], bind_access);
+			}
+			else
+			{
+				//help(bind_command);
+			}
+			overwatch(bind_command, command, chan, nick, auth, args);
+		}
+
+		if (local && !global)		//local only
+		{
+
+			//adduser
+			if (bind_command == "adduser")
+			{
+				if (args.size() == 1)
+				{
+					AddUser(chan, nick, auth, U.GetAuth(args[0]), args[0], bind_access);
+				}
+				else if (args.size() == 2)
+				{
+					AddUser(chan, nick, auth, U.GetAuth(args[0]), args[1], bind_access);
+				}
+				else
+				{
+					//help(bind_command);
+				}
+				overwatch(bind_command, command, chan, nick, auth, args);
+			}
+
+			//deluser
+			if (bind_command == "deluser")
+			{
+				if (args.size() == 1)
+				{
+					DelUser(chan, nick, auth, args[0], bind_access);
+				}
+				else
+				{
+					//help(bind_command);
+				}
+				overwatch(bind_command, command, chan, nick, auth, args);
+			}
+
+			//resetpass
+			if (bind_command == "resetpass")
+			{
+				if (args.size() == 1)
+				{
+					ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[0], bind_access);
+				}
+				else if (args.size() == 2)
+				{
+					ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[1], bind_access);
+				}
+				else
+				{
+					//help(bind_command);
+				}
+				overwatch(bind_command, command, chan, nick, auth, args);
 			}
 		}
     }
@@ -260,166 +283,266 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 
 void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas)
 {
-	std::string pass = generatePwd(8);
-	std::string returnstr = "PRIVMSG *admin :set Password " + mReqAuth + " " + pass + "\r\n";
-	Send(returnstr);
-	returnstr = "NOTICE " + mSendNick + " :";
-	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-	returnstr = returnstr + ": password for ";
-	returnstr = returnstr + mReqAuth;
-	returnstr = returnstr + " is now ";
-	returnstr = returnstr + pass;
-	returnstr = returnstr + "\r\n";
-	Send(returnstr);
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		std::string pass = generatePwd(8);
+		std::string returnstr = "PRIVMSG *admin :set Password " + mReqAuth + " " + pass + "\r\n";
+		Send(returnstr);
+		returnstr = "NOTICE " + mSendNick + " :";
+		returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+		returnstr = returnstr + ": password for ";
+		returnstr = returnstr + mReqAuth;
+		returnstr = returnstr + " is now ";
+		returnstr = returnstr + pass;
+		returnstr = returnstr + "\r\n";
+		Send(returnstr);
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
 }
 
 void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas)
 {
-	std::string pass = generatePwd(8);
-	std::string returnstr = "PRIVMSG *admin :adduser " + mReqAuth + " " + pass + " irc.onlinegamesnet.net\r\n";
-	Send(returnstr);
-	SaveConfig();
-	returnstr = "NOTICE " + mSendNick + " :";
-	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-	returnstr = returnstr + ": added ";
-	returnstr = returnstr + mReqAuth;
-	returnstr = returnstr + " with password ";
-	returnstr = returnstr + pass;
-	returnstr = returnstr + "\r\n";
-	Send(returnstr);
-	returnstr = "PRIVMSG " + mChan + " :";
-	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-	returnstr = returnstr + ": added ";
-	returnstr = returnstr + mReqAuth;
-	returnstr = returnstr + "\r\n";
-	Send(returnstr);
-	JoinChannel(mReqAuth);
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		std::string pass = generatePwd(8);
+		std::string returnstr = "PRIVMSG *admin :adduser " + mReqAuth + " " + pass + " irc.onlinegamesnet.net\r\n";
+		Send(returnstr);
+		SaveConfig();
+		returnstr = "NOTICE " + mSendNick + " :";
+		returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+		returnstr = returnstr + ": added ";
+		returnstr = returnstr + mReqAuth;
+		returnstr = returnstr + " with password ";
+		returnstr = returnstr + pass;
+		returnstr = returnstr + "\r\n";
+		Send(returnstr);
+		returnstr = "PRIVMSG " + mChan + " :";
+		returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+		returnstr = returnstr + ": added ";
+		returnstr = returnstr + mReqAuth;
+		returnstr = returnstr + "\r\n";
+		Send(returnstr);
+		JoinChannel(mReqAuth);
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
 }
 
 void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, int oas)
 {
-	std::string returnstr = "PRIVMSG *admin :deluser " + mReqAuth + "\r\n";
-	Send(returnstr);
-	SaveConfig();
-	returnstr = "PRIVMSG " + mChan + " :";
-	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-	returnstr = returnstr + ": deleted ";
-	returnstr = returnstr + mReqAuth;
-	returnstr = returnstr + "\r\n";
-	Send(returnstr);
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		std::string returnstr = "PRIVMSG *admin :deluser " + mReqAuth + "\r\n";
+		Send(returnstr);
+		SaveConfig();
+		returnstr = "PRIVMSG " + mChan + " :";
+		returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+		returnstr = returnstr + ": deleted ";
+		returnstr = returnstr + mReqAuth;
+		returnstr = returnstr + "\r\n";
+		Send(returnstr);
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
 }
 
 void Znc::Stats(std::string mChan, std::string mNick, std::string mAuth, int oas)
 {
-	std::string nUsers = convertInt(znc_user_nick.size());
-	std::string maxUsers = convertInt(MaxUsers);
-	std::string returnstr = "PRIVMSG " + mChan + " :";
-	returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-	returnstr = returnstr + ": ";
-	if (znc_user_nick.size() < MaxUsers)
-	{
-		returnstr = returnstr + nUsers;
-		returnstr = returnstr + "/";
-		returnstr = returnstr + maxUsers;
-	}
-	if (znc_user_nick.size() >= MaxUsers)
-	{
-		returnstr = returnstr + "FULL";
-	}
-	returnstr = returnstr + "\r\n";
-	Send(returnstr);
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		std::string nUsers = convertInt(znc_user_nick.size());
+		std::string maxUsers = convertInt(MaxUsers);
+		std::string returnstr = "PRIVMSG " + mChan + " :";
+		returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+		returnstr = returnstr + ": ";
+		if (znc_user_nick.size() < MaxUsers)
+		{
+			returnstr = returnstr + nUsers;
+			returnstr = returnstr + "/";
+			returnstr = returnstr + maxUsers;
+		}
+		if (znc_user_nick.size() >= MaxUsers)
+		{
+			returnstr = returnstr + "FULL";
+		}
+		returnstr = returnstr + "\r\n";
+		Send(returnstr);
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
 }
 
 void Znc::JoinAll(std::string mChan, std::string mNick, std::string mAuth, int oas)
 {
-	for (unsigned int i = 0; i < znc_user_nick.size(); i++)
-	{
-		JoinChannel(znc_user_nick[i]);
-	}
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		for (unsigned int i = 0; i < znc_user_nick.size(); i++)
+		{
+			JoinChannel(znc_user_nick[i]);
+		}
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
 }
 
 void Znc::VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int oas)
 {
-	for (unsigned int i = 0; i < znc_user_nick.size(); i++)
-	{
-		Voice(znc_user_nick[i]);
-	}
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		for (unsigned int i = 0; i < znc_user_nick.size(); i++)
+		{
+			Voice(znc_user_nick[i]);
+		}
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
 }
 
 void Znc::SimulAll(std::string mChan, std::string mNick, std::string mAuth, std::string mSimulString, int oas)
 {
-	for (unsigned int i = 0; i < znc_user_nick.size(); i++)
-	{
-		Simul(znc_user_nick[i], mSimulString);
-	}
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		for (unsigned int i = 0; i < znc_user_nick.size(); i++)
+		{
+			Simul(znc_user_nick[i], mSimulString);
+		}
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
 }
 
 void Znc::SimulUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSimulString, int oas)
 {
-	Simul(mReqAuth, mSimulString);
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		Simul(mReqAuth, mSimulString);
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
 }
 
 void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
-    size_t searchpos;
-	for (unsigned int it_i = 0; it_i < znc_user_nick.size(); it_i++)
-	{
-		searchpos = znc_user_nick[it_i].find(mSearchString);
-		if (searchpos != std::string::npos)
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		size_t searchpos;
+		for (unsigned int it_i = 0; it_i < znc_user_nick.size(); it_i++)
 		{
-			std::string returnstr = "PRIVMSG " + mChan + " :";
-			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-			returnstr = returnstr + ": ";
-			returnstr = returnstr + znc_user_nick[it_i];
-			returnstr = returnstr + "\r\n";
-			Send(returnstr);
+			searchpos = znc_user_nick[it_i].find(mSearchString);
+			if (searchpos != std::string::npos)
+			{
+				std::string returnstr = "PRIVMSG " + mChan + " :";
+				returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+				returnstr = returnstr + ": ";
+				returnstr = returnstr + znc_user_nick[it_i];
+				returnstr = returnstr + "\r\n";
+				Send(returnstr);
+			}
 		}
-	}
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
 }
 
 void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
-    size_t searchpos;
-	for (unsigned int it_i = 0; it_i < znc_user_nick.size(); it_i++)
-	{
-		searchpos = znc_user_nick[it_i].find(mSearchString);
-		if (searchpos != std::string::npos)
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		size_t searchpos;
+		for (unsigned int it_i = 0; it_i < znc_user_nick.size(); it_i++)
 		{
-			std::string returnstr = "PRIVMSG " + mChan + " :";
-			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-			returnstr = returnstr + ": ";
-			returnstr = returnstr + znc_user_nick[it_i];
-			returnstr = returnstr + "\r\n";
-			Send(returnstr);
-			returnstr = "PRIVMSG " + mChan + " :";
-			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-			returnstr = returnstr + ": Nick:  ";
-			returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Nick"];
-			returnstr = returnstr + "\r\n";
-			Send(returnstr);
-			returnstr = "PRIVMSG " + mChan + " :";
-			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-			returnstr = returnstr + ": Ident:  ";
-			returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Ident"];
-			returnstr = returnstr + "\r\n";
-			Send(returnstr);
-			returnstr = "PRIVMSG " + mChan + " :";
-			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-			returnstr = returnstr + ": Server:  ";
-			std::vector< std::string > server_vector;
-			boost::split( server_vector, znc_user_setting_map[znc_user_nick[it_i]]["Server"], boost::is_any_of(" "), boost::token_compress_on );
-			if(server_vector.size()>=1)
+			searchpos = znc_user_nick[it_i].find(mSearchString);
+			if (searchpos != std::string::npos)
 			{
-				returnstr = returnstr + server_vector[0];
+				std::string returnstr = "PRIVMSG " + mChan + " :";
+				returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+				returnstr = returnstr + ": ";
+				returnstr = returnstr + znc_user_nick[it_i];
+				returnstr = returnstr + "\r\n";
+				Send(returnstr);
+				returnstr = "PRIVMSG " + mChan + " :";
+				returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+				returnstr = returnstr + ": Nick:  ";
+				returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Nick"];
+				returnstr = returnstr + "\r\n";
+				Send(returnstr);
+				returnstr = "PRIVMSG " + mChan + " :";
+				returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+				returnstr = returnstr + ": Ident:  ";
+				returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Ident"];
+				returnstr = returnstr + "\r\n";
+				Send(returnstr);
+				returnstr = "PRIVMSG " + mChan + " :";
+				returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+				returnstr = returnstr + ": Server:  ";
+				std::vector< std::string > server_vector;
+				boost::split( server_vector, znc_user_setting_map[znc_user_nick[it_i]]["Server"], boost::is_any_of(" "), boost::token_compress_on );
+				if(server_vector.size()>=1)
+				{
+					returnstr = returnstr + server_vector[0];
+				}
+				if(server_vector.size()>=2)
+				{
+					returnstr = returnstr + " " + server_vector[1];
+				}
+				returnstr = returnstr + "\r\n";
+				Send(returnstr);
 			}
-			if(server_vector.size()>=2)
-			{
-				returnstr = returnstr + " " + server_vector[1];
-			}
-			returnstr = returnstr + "\r\n";
-			Send(returnstr);
 		}
-	}
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
 }
 
 void Znc::SaveConfig()
