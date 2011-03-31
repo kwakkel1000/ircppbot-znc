@@ -73,18 +73,18 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
     std::string auth = U.GetAuth(nick);
 	std::string global_trigger = Global::Instance().get_ConfigReader().GetString("znc_global_trigger");
 	std::string local_trigger = Global::Instance().get_ConfigReader().GetString("znc_local_trigger");
-	bool global = true; //till triger system is fixed
+	bool global = false;
 	bool local = false;
 	if (command.size() >= 1)
 	{
-		/*if (command.substr(0, 1) == global_trigger.length())
+		if (command.substr(0, global_trigger.length()) == global_trigger)
 		{
-			command = command.substr(1, command.length()-1);
+			command = command.substr(global_trigger.length(), command.length()-1);
 			global = true;
-		}*/
+		}
 		if (command.substr(0, local_trigger.length()) == local_trigger)
 		{
-			command = command.substr(1, command.length()-1);
+			command = command.substr(local_trigger.length(), command.length()-1);
 			local = true;
 		}
 	}
