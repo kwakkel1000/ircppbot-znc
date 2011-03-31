@@ -1,5 +1,6 @@
 #include "include/Znc.h"
 #include <core/Global.h>
+#include <core/DatabaseData.h>
 #include <iostream>
 #include <algorithm>
 #include <boost/algorithm/string.hpp>
@@ -34,6 +35,8 @@ void Znc::Init(DataInterface* pData)
     MaxUsers = convertString(Global::Instance().get_ConfigReader().GetString("znc_max_users"));
 	ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
     timerlong();
+    command_table = "ZncCommands";
+    DatabaseData::Instance().DatabaseData::AddBinds(command_table);
 }
 
 
@@ -66,105 +69,191 @@ void Znc::parse_privmsg()
 
 void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, std::vector< std::string > args, int chantrigger)
 {
-    std::cout << "Znc" << std::endl;
     UsersInterface& U = Global::Instance().get_Users();
     std::string auth = U.GetAuth(nick);
-    if (args.size() == 0)
+	std::string global_trigger = Global::Instance().get_ConfigReader().GetString("znc_global_trigger");
+	std::string local_trigger = Global::Instance().get_ConfigReader().GetString("znc_local_trigger");
+	bool global = false;
+	bool local = false;
+	if (command.size() >= 1)
+	{
+		if (command.substr(0, 1) == global_trigger)
+		{
+			command = command.substr(1, command.length()-1);
+			global = true;
+		}
+		if (command.substr(0, 1) == local_trigger)
+		{
+			command = command.substr(1, command.length()-1);
+			local = true;
+		}
+	}
+    if (local || global)
     {
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "stats") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "stats"))
+    	std::string bind_command = DatabaseData::Instance().GetCommandByBindNameAndBind(command_table, command);
+		int bind_access = DatabaseData::Instance().GetAccessByBindNameAndBind(command_table, command);
+		std::cout << bind_command << " " << bind_access << std::endl;
+
+
+		//auth
+		if (bind_command == "stats")
 		{
-			overwatch(command, command, chan, nick, auth, args);
-			Stats(chan, nick, auth, 0);
-		}
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "joinall") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "joinall"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			JoinAll(chan, nick, auth, 0);
-		}
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "voiceall") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "voiceall"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			VoiceAll(chan, nick, auth, 0);
-		}
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "read") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "read"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
-		}
-    }
-    if (args.size() >= 1)
-    {
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "simulall") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "simulall"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			std::string simulString;
-			for (unsigned int j = 0; j < args.size()-1; j++)
+			if (args.size() == 0)
 			{
-				simulString = simulString + args[j] + " ";
+				Stats(chan, nick, auth, bind_access);
 			}
-			if (args.size() > 0)
+			else
 			{
-				simulString = simulString + args[args.size()-1];
+				//help(bind_command);
 			}
-			SimulAll(chan, nick, auth, simulString, 0);
+			overwatch(bind_command, command, chan, nick, auth, args);
 		}
-    }
-    if (args.size() == 1)
-    {
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "search") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "search"))
+
+		//joinall
+		if (bind_command == "joinall")
 		{
-			overwatch(command, command, chan, nick, auth, args);
-			Search(chan, nick, auth, args[0], 0);
-		}
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "info") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "info"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			Info(chan, nick, auth, args[0], 0);
-		}
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "adduser"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			AddUser(chan, nick, auth, U.GetAuth(args[0]), args[0], 0);
-		}
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "deluser"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			DelUser(chan, nick, auth, args[0], 0);
-		}
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "resetpass"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[0], 0);
-		}
-    }
-    if (args.size() == 2)
-    {
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "adduser"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			AddUser(chan, nick, auth, U.GetAuth(args[0]), args[1], 0);
-		}
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "resetpass"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[1], 0);
-		}
-    }
-    if (args.size() >= 2)
-    {
-		if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "simul") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "simul"))
-		{
-			overwatch(command, command, chan, nick, auth, args);
-			std::string simulString;
-			for (unsigned int j = 1; j < args.size()-1; j++)
+			if (args.size() == 0)
 			{
-				simulString = simulString + args[j] + " ";
+				JoinAll(chan, nick, auth, bind_access);
 			}
-			if (args.size() > 1)
+			else
 			{
-				simulString = simulString + args[args.size()-1];
+				//help(bind_command);
 			}
-			SimulUser(chan, nick, auth, args[0], simulString, 0);
+			overwatch(bind_command, command, chan, nick, auth, args);
+		}
+
+		//voiceall
+		if (bind_command == "voiceall")
+		{
+			if (args.size() == 0)
+			{
+				VoiceAll(chan, nick, auth, bind_access);
+			}
+			else
+			{
+				//help(bind_command);
+			}
+			overwatch(bind_command, command, chan, nick, auth, args);
+		}
+
+		//read
+		if (bind_command == "read")
+		{
+			if (args.size() == 0)
+			{
+				ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
+			}
+			else
+			{
+				//help(bind_command);
+			}
+			overwatch(bind_command, command, chan, nick, auth, args);
+		}
+
+		if (local && !global)		//local only
+		{
+
+		}
+
+		/*if (args.size() == 0)
+		{
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "stats") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "stats"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				Stats(chan, nick, auth, 0);
+			}
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "joinall") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "joinall"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				JoinAll(chan, nick, auth, 0);
+			}
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "voiceall") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "voiceall"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				VoiceAll(chan, nick, auth, 0);
+			}
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "read") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "read"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
+			}
+		}*/
+
+		if (args.size() >= 1)
+		{
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "simulall") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "simulall"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				std::string simulString;
+				for (unsigned int j = 0; j < args.size()-1; j++)
+				{
+					simulString = simulString + args[j] + " ";
+				}
+				if (args.size() > 0)
+				{
+					simulString = simulString + args[args.size()-1];
+				}
+				SimulAll(chan, nick, auth, simulString, 0);
+			}
+		}
+		if (args.size() == 1)
+		{
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "search") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "search"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				Search(chan, nick, auth, args[0], 0);
+			}
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "info") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "info"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				Info(chan, nick, auth, args[0], 0);
+			}
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "adduser"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				AddUser(chan, nick, auth, U.GetAuth(args[0]), args[0], 0);
+			}
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "deluser"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				DelUser(chan, nick, auth, args[0], 0);
+			}
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "resetpass"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[0], 0);
+			}
+		}
+		if (args.size() == 2)
+		{
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "adduser"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				AddUser(chan, nick, auth, U.GetAuth(args[0]), args[1], 0);
+			}
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "resetpass"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				ResetPasswd(chan, nick, auth, U.GetAuth(args[0]), args[1], 0);
+			}
+		}
+		if (args.size() >= 2)
+		{
+			if (boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_global_trigger") + "simul") || boost::iequals(command, Global::Instance().get_ConfigReader().GetString("znc_local_trigger") + "simul"))
+			{
+				overwatch(command, command, chan, nick, auth, args);
+				std::string simulString;
+				for (unsigned int j = 1; j < args.size()-1; j++)
+				{
+					simulString = simulString + args[j] + " ";
+				}
+				if (args.size() > 1)
+				{
+					simulString = simulString + args[args.size()-1];
+				}
+				SimulUser(chan, nick, auth, args[0], simulString, 0);
+			}
 		}
     }
 }

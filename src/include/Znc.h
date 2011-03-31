@@ -44,6 +44,7 @@ private:
     int longtime;
 
     bool run;
+    std::string command_table;
     unsigned int MaxUsers;
     boost::shared_ptr<boost::thread> privmsg_parse_thread;
 
