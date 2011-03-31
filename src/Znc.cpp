@@ -94,6 +94,19 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		int bind_access = DatabaseData::Instance().GetAccessByBindNameAndBind(command_table, command);
 		std::cout << bind_command << " " << bind_access << std::endl;
 
+		//znccommands
+		if (bind_command == "znccommands")
+		{
+			if (args.size() == 0)
+			{
+				znccommands(nick, auth, bind_access);
+			}
+			else
+			{
+				//help(bind_command);
+			}
+			overwatch(bind_command, command, chan, nick, auth, args);
+		}
 
 		//auth
 		if (bind_command == "stats")
@@ -542,6 +555,45 @@ void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::str
     {
         std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
         Send(returnstring);
+    }
+}
+
+void Znc::znccommands(std::string mNick, std::string mAuth, int oas)
+{
+    UsersInterface& U = Global::Instance().get_Users();
+	int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+		UsersInterface& U = Global::Instance().get_Users();
+		std::string returnstring;
+		unsigned int length = U.GetWidth(mNick);
+		unsigned int amount = U.GetWidthLength(mNick);
+		std::string commandrpl = irc_reply("znccommands", U.GetLanguage(mNick));
+		returnstring = "NOTICE " + mNick + " :";
+		for (unsigned int l = 0; l < (((length * amount) / 2) - commandrpl.size()/2); l++)
+		{
+			returnstring = returnstring + " ";
+		}
+		returnstring = returnstring + commandrpl + "\r\n";
+		Send(returnstring);
+
+
+		returnstring = "NOTICE " + mNick + " :";
+		returnstring = returnstring + fillspace("bind", 20);
+		returnstring = returnstring + fillspace("command", 20);
+		returnstring = returnstring + "access\r\n";
+		Send(returnstring);
+		std::vector< std::string > binds = DatabaseData::Instance().GetBindVectorByBindName(command_table);
+		for (unsigned int binds_it = 0; binds_it < binds.size(); binds_it++)
+		{
+			std::string bind_access = convertInt(DatabaseData::Instance().GetAccessByBindNameAndBind(command_table, binds[binds_it]));
+			std::string bind_command = DatabaseData::Instance().GetCommandByBindNameAndBind(command_table, binds[binds_it]);
+			returnstring = "NOTICE " + mNick + " :";
+			returnstring = returnstring + fillspace(binds[binds_it], 20);
+			returnstring = returnstring + fillspace(bind_command, 20);
+			returnstring = returnstring + bind_access + "\r\n";
+			Send(returnstring);
+		}
     }
 }
 
