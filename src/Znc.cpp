@@ -77,12 +77,12 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 	bool local = false;
 	if (command.size() >= 1)
 	{
-		/*if (command.substr(0, 1) == global_trigger)
+		/*if (command.substr(0, 1) == global_trigger.length())
 		{
 			command = command.substr(1, command.length()-1);
 			global = true;
 		}*/
-		if (command.substr(0, 1) == local_trigger)
+		if (command.substr(0, local_trigger.length()) == local_trigger)
 		{
 			command = command.substr(1, command.length()-1);
 			local = true;
@@ -603,10 +603,10 @@ void Znc::znccommands(std::string mNick, std::string mAuth, int oas)
 		sort (binds.begin(), binds.end());
 		for (unsigned int binds_it = 0; binds_it < binds.size(); binds_it++)
 		{
-			if (binds[binds_it] != "")
+			std::string bind_access = convertInt(DatabaseData::Instance().GetAccessByBindNameAndBind(command_table, binds[binds_it]));
+			std::string bind_command = DatabaseData::Instance().GetCommandByBindNameAndBind(command_table, binds[binds_it]);
+			if (bind_command != "")
 			{
-				std::string bind_access = convertInt(DatabaseData::Instance().GetAccessByBindNameAndBind(command_table, binds[binds_it]));
-				std::string bind_command = DatabaseData::Instance().GetCommandByBindNameAndBind(command_table, binds[binds_it]);
 				returnstring = "NOTICE " + mNick + " :";
 				returnstring = returnstring + fillspace(binds[binds_it], 20);
 				returnstring = returnstring + fillspace(bind_command, 20);
