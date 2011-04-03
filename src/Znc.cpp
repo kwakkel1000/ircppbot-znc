@@ -96,7 +96,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		std::cout << bind_command << " " << bind_access << std::endl;
 
 		//znccommands
-		if (bind_command == "znccommands")
+		if (boost::iequals(bind_command, "znccommands"))
 		{
 			if (args.size() == 0)
 			{
@@ -110,7 +110,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		}
 
 		//auth
-		if (bind_command == "stats")
+		if (boost::iequals(bind_command, "stats"))
 		{
 			if (args.size() == 0)
 			{
@@ -124,7 +124,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		}
 
 		//joinall
-		if (bind_command == "joinall")
+		if (boost::iequals(bind_command, "joinall"))
 		{
 			if (args.size() == 0)
 			{
@@ -138,7 +138,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		}
 
 		//voiceall
-		if (bind_command == "voiceall")
+		if (boost::iequals(bind_command, "voiceall"))
 		{
 			if (args.size() == 0)
 			{
@@ -152,7 +152,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		}
 
 		//read
-		if (bind_command == "read")
+		if (boost::iequals(bind_command, "read"))
 		{
 			if (args.size() == 0)
 			{
@@ -166,7 +166,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		}
 
 		//simulall
-		if (bind_command == "simulall")
+		if (boost::iequals(bind_command, "simulall"))
 		{
 			if (args.size() >= 1)
 			{
@@ -189,7 +189,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		}
 
 		//simul
-		if (bind_command == "simul")
+		if (boost::iequals(bind_command, "simul"))
 		{
 			if (args.size() >= 2)
 			{
@@ -212,7 +212,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		}
 
 		//search
-		if (bind_command == "search")
+		if (boost::iequals(bind_command, "search"))
 		{
 			if (args.size() == 1)
 			{
@@ -226,7 +226,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		}
 
 		//info
-		if (bind_command == "info")
+		if (boost::iequals(bind_command, "info"))
 		{
 			if (args.size() == 1)
 			{
@@ -243,7 +243,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 		{
 
 			//adduser
-			if (bind_command == "adduser")
+			if (boost::iequals(bind_command, "adduser"))
 			{
 				if (args.size() == 1)
 				{
@@ -261,7 +261,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 			}
 
 			//deluser
-			if (bind_command == "deluser")
+			if (boost::iequals(bind_command, "deluser"))
 			{
 				if (args.size() == 1)
 				{
@@ -275,7 +275,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 			}
 
 			//resetpass
-			if (bind_command == "resetpass")
+			if (boost::iequals(bind_command, "resetpass"))
 			{
 				if (args.size() == 1)
 				{
