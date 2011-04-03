@@ -500,6 +500,17 @@ void Znc::SimulUser(std::string mChan, std::string mNick, std::string mAuth, std
 void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
 	boost::to_lower(mSearchString);
+	size_t star;
+    star = mSearchString.find("*");	//first *
+    if (star != std::string::npos)
+    {
+        mSearchString.replace(star, star + 1, "");
+    }
+    star = mSearchString.find("*");	//last * (if used right)
+    if (star != std::string::npos)
+    {
+        mSearchString.replace(star, star + 1, "");
+    }
     UsersInterface& U = Global::Instance().get_Users();
 	int oaccess = U.GetOaccess(mNick);
     if (oaccess >= oas)
@@ -531,6 +542,17 @@ void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::s
 void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
 	boost::to_lower(mSearchString);
+	size_t star;
+    star = mSearchString.find("*");	//first *
+    if (star != std::string::npos)
+    {
+        mSearchString.replace(star, star + 1, "");
+    }
+    star = mSearchString.find("*");	//last * (if used right)
+    if (star != std::string::npos)
+    {
+        mSearchString.replace(star, star + 1, "");
+    }
     UsersInterface& U = Global::Instance().get_Users();
 	int oaccess = U.GetOaccess(mNick);
     if (oaccess >= oas)
