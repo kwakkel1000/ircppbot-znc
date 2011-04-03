@@ -504,12 +504,12 @@ void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::s
     star = mSearchString.find("*");	//first *
     if (star != std::string::npos)
     {
-        mSearchString.replace(star, star + 1, "");
+        mSearchString.replace(star, 1, "");
     }
     star = mSearchString.find("*");	//last * (if used right)
     if (star != std::string::npos)
     {
-        mSearchString.replace(star, star + 1, "");
+        mSearchString.replace(star, 1, "");
     }
     UsersInterface& U = Global::Instance().get_Users();
 	int oaccess = U.GetOaccess(mNick);
