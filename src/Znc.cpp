@@ -499,6 +499,7 @@ void Znc::SimulUser(std::string mChan, std::string mNick, std::string mAuth, std
 
 void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
+	boost::to_lower(mSearchString);
     UsersInterface& U = Global::Instance().get_Users();
 	int oaccess = U.GetOaccess(mNick);
     if (oaccess >= oas)
@@ -506,7 +507,9 @@ void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::s
 		size_t searchpos;
 		for (unsigned int it_i = 0; it_i < znc_user_nick.size(); it_i++)
 		{
-			searchpos = znc_user_nick[it_i].find(mSearchString);
+			std::string tmp_nick = znc_user_nick[it_i];
+			boost::to_lower(tmp_nick);
+			searchpos = tmp_nick.find(mSearchString);
 			if (searchpos != std::string::npos)
 			{
 				std::string returnstr = "PRIVMSG " + mChan + " :";
@@ -527,6 +530,7 @@ void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::s
 
 void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
+	boost::to_lower(mSearchString);
     UsersInterface& U = Global::Instance().get_Users();
 	int oaccess = U.GetOaccess(mNick);
     if (oaccess >= oas)
@@ -534,7 +538,9 @@ void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::str
 		size_t searchpos;
 		for (unsigned int it_i = 0; it_i < znc_user_nick.size(); it_i++)
 		{
-			searchpos = znc_user_nick[it_i].find(mSearchString);
+			std::string tmp_nick = znc_user_nick[it_i];
+			boost::to_lower(tmp_nick);
+			searchpos = tmp_nick.find(mSearchString);
 			if (searchpos != std::string::npos)
 			{
 				std::string returnstr = "PRIVMSG " + mChan + " :";
