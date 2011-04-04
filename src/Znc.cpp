@@ -343,6 +343,8 @@ void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::
 			Send(returnstr);
 			returnstr = "PRIVMSG *admin :Set VHost " + mReqAuth + " " + Global::Instance().get_ConfigReader().GetString("znc_vhost") + "\r\n";
 			Send(returnstr);
+			returnstr = "PRIVMSG *admin :Set BindHost " + mReqAuth + " " + Global::Instance().get_ConfigReader().GetString("znc_vhost") + "\r\n";
+			Send(returnstr);
 			SaveConfig();
 			for (unsigned int AddUserText_it = 0; AddUserText_it < AddUserText.size(); AddUserText_it++)
 			{
