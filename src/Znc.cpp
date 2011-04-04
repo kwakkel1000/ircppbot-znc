@@ -29,6 +29,7 @@ Znc::~Znc()
 
 void Znc::Init(DataInterface* pData)
 {
+	srand ( time(NULL) );
 	mpDataInterface = pData;
 	mpDataInterface->Init(false, false, false, true);
     Global::Instance().get_IrcData().AddConsumer(mpDataInterface);
