@@ -47,7 +47,6 @@ private:
     bool run;
     std::string command_table;
     std::vector< std::string > AddUserText;
-    unsigned int MaxUsers;
     boost::shared_ptr<boost::thread> privmsg_parse_thread;
 
 

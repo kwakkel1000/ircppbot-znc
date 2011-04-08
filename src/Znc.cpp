@@ -33,7 +33,6 @@ void Znc::Init(DataInterface* pData)
 	mpDataInterface = pData;
 	mpDataInterface->Init(false, false, false, true);
     Global::Instance().get_IrcData().AddConsumer(mpDataInterface);
-    MaxUsers = convertString(Global::Instance().get_ConfigReader().GetString("znc_max_users"));
 	ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
 	ReadAddUserText(Global::Instance().get_ConfigReader().GetString("znc_addusertext"));
     timerlong();
@@ -95,6 +94,30 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
     	std::string bind_command = DatabaseData::Instance().GetCommandByBindNameAndBind(command_table, command);
 		int bind_access = DatabaseData::Instance().GetAccessByBindNameAndBind(command_table, command);
 		std::cout << bind_command << " " << bind_access << std::endl;
+
+		//znccommands
+		if (boost::iequals(command, "save"))
+		{
+			if (args.size() == 0)
+			{
+				std::string returnstr;
+				returnstr = "PRIVMSG " + chan + " :";
+				returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+				returnstr = returnstr + ": supporter ";
+				returnstr = returnstr + nick;
+				returnstr = returnstr + "FAILED\r\n";
+				Send(returnstr);
+				returnstr = "NOTICE " + nick + " :YOU FAILED..\r\n";
+				Send(returnstr);
+				returnstr = "NOTICE " + nick + " :read the board\r\n";
+				Send(returnstr);
+			}
+			else
+			{
+				//help(bind_command);
+			}
+			overwatch(bind_command, command, chan, nick, auth, args);
+		}
 
 		//znccommands
 		if (boost::iequals(bind_command, "znccommands"))
@@ -315,6 +338,13 @@ void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, s
 			returnstr = returnstr + pass;
 			returnstr = returnstr + "\r\n";
 			Send(returnstr);
+
+			returnstr = "PRIVMSG " + mChan + " :";
+			returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+			returnstr = returnstr + ": password resetted for ";
+			returnstr = returnstr + mReqAuth;
+			returnstr = returnstr + "\r\n";
+			Send(returnstr);
     	}
 		else
 		{
@@ -411,17 +441,17 @@ void Znc::Stats(std::string mChan, std::string mNick, std::string mAuth, int oas
     if (oaccess >= oas)
     {
 		std::string nUsers = convertInt(znc_user_nick.size());
-		std::string maxUsers = convertInt(MaxUsers);
+		std::string maxUsers = convertInt(convertString(Global::Instance().get_ConfigReader().GetString("znc_max_users")));
 		std::string returnstr = "PRIVMSG " + mChan + " :";
 		returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 		returnstr = returnstr + ": ";
-		if (znc_user_nick.size() < MaxUsers)
+		if (znc_user_nick.size() < convertString(Global::Instance().get_ConfigReader().GetString("znc_max_users")))
 		{
 			returnstr = returnstr + nUsers;
 			returnstr = returnstr + "/";
 			returnstr = returnstr + maxUsers;
 		}
-		if (znc_user_nick.size() >= MaxUsers)
+		if (znc_user_nick.size() >= convertString(Global::Instance().get_ConfigReader().GetString("znc_max_users")))
 		{
 			returnstr = returnstr + "FULL";
 		}
