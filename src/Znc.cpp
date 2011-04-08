@@ -105,7 +105,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
 				returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
 				returnstr = returnstr + ": supporter ";
 				returnstr = returnstr + nick;
-				returnstr = returnstr + "FAILED\r\n";
+				returnstr = returnstr + " FAILED\r\n";
 				Send(returnstr);
 				returnstr = "NOTICE " + nick + " :YOU FAILED..\r\n";
 				Send(returnstr);
