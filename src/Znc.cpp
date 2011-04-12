@@ -436,6 +436,7 @@ void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::
 
 void Znc::Stats(std::string mChan, std::string mNick, std::string mAuth, int oas)
 {
+	ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
     UsersInterface& U = Global::Instance().get_Users();
 	int oaccess = U.GetOaccess(mNick);
     if (oaccess >= oas)
@@ -536,6 +537,7 @@ void Znc::SimulUser(std::string mChan, std::string mNick, std::string mAuth, std
 
 void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
+	ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
 	boost::to_lower(mSearchString);
 	size_t star;
     star = mSearchString.find("*");	//first *
@@ -578,6 +580,7 @@ void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::s
 
 void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
+	ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
 	boost::to_lower(mSearchString);
 	size_t star;
     star = mSearchString.find("*");	//first *
@@ -692,7 +695,7 @@ void Znc::SaveConfig()
 {
 	std::string returnstr = "PRIVMSG *status :SaveConfig\r\n";
 	Send(returnstr);
-	usleep(1000000);
+	usleep(5000000);
 	ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
 }
 
