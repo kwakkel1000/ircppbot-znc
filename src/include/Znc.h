@@ -72,7 +72,7 @@ private:
     std::string command_table;
     std::vector< std::string > AddUserText;
     boost::shared_ptr<boost::thread> privmsg_parse_thread;
-    boost::shared_ptr<boost::thread> SaveReadThread;
+
 
 
     std::map< std::string, std::map< std::string, std::string > > znc_user_setting_map;

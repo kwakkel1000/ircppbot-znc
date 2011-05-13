@@ -719,6 +719,7 @@ void Znc::SaveConfig()
 {
     std::string returnstr = "PRIVMSG *status :SaveConfig\r\n";
     Send(returnstr);
+    boost::shared_ptr<boost::thread> SaveReadThread;
     assert(!SaveReadThread);
     SaveReadThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&Znc::SaveRead, this)));
 }
