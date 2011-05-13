@@ -1,3 +1,27 @@
+//
+//
+//  @ Project : ircppbot
+//  @ File Name : Bot.cpp
+//  @ Date : 4/18/2011
+//  @ Author : Gijs Kwakkel
+//
+//
+// Copyright (c) 2011 Gijs Kwakkel
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License
+// as published by the Free Software Foundation; either version 2
+// of the License, or (at your option) any later version.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program; if not, write to the Free Software
+// Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+//
+
 #ifndef Znc_H
 #define Znc_H
 #include <core/ModuleBase.h>
@@ -25,17 +49,17 @@ private:
     void parse_privmsg();
     void ParsePrivmsg(std::string nick, std::string command, std::string chan, std::vector< std::string > args, int chantrigger);
 
-	void ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas);
-	void AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas);
-	void DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, int oas);
-	void Stats(std::string mChan, std::string mNick, std::string mAuth, int oas);
-	void JoinAll(std::string mChan, std::string mNick, std::string mAuth, int oas);
-	void VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int oas);
-	void SimulAll(std::string mChan, std::string mNick, std::string mAuth, std::string mSimulString, int oas);
-	void SimulUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSimulString, int oas);
-	void Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
-	void Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
-	void znccommands(std::string mNick, std::string mAuth, int oas);
+    void ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas);
+    void AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas);
+    void DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, int oas);
+    void Stats(std::string mChan, std::string mNick, std::string mAuth, int oas);
+    void JoinAll(std::string mChan, std::string mNick, std::string mAuth, int oas);
+    void VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int oas);
+    void SimulAll(std::string mChan, std::string mNick, std::string mAuth, std::string mSimulString, int oas);
+    void SimulUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSimulString, int oas);
+    void Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
+    void Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
+    void znccommands(std::string mNick, std::string mAuth, int oas);
 
     void timerlong();
     std::vector<int> timer_sec;
@@ -48,6 +72,7 @@ private:
     std::string command_table;
     std::vector< std::string > AddUserText;
     boost::shared_ptr<boost::thread> privmsg_parse_thread;
+    boost::shared_ptr<boost::thread> SaveReadThread;
 
 
     std::map< std::string, std::map< std::string, std::string > > znc_user_setting_map;
@@ -56,6 +81,7 @@ private:
 
     std::map< std::string, std::string > globalsettings;
     void SaveConfig();
+    void SaveRead();
     void JoinChannel(std::string mNick);
     void Voice(std::string mNick);
     void Simul(std::string mNick, std::string mSimulString);
