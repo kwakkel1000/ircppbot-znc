@@ -1,7 +1,7 @@
 //
 //
 //  @ Project : ircppbot
-//  @ File Name : Bot.cpp
+//  @ File Name : Znc.h
 //  @ Date : 4/18/2011
 //  @ Author : Gijs Kwakkel
 //
@@ -71,6 +71,7 @@ private:
     bool run;
     std::string command_table;
     std::vector< std::string > AddUserText;
+    std::vector< std::string > ResetPassText;
     boost::shared_ptr<boost::thread> privmsg_parse_thread;
 
 
@@ -87,6 +88,7 @@ private:
     void Simul(std::string mNick, std::string mSimulString);
     bool ReadFile( std::string filename );
     bool ReadAddUserText( std::string filename );
+    bool ReadResetPassText( std::string filename );
     std::string generatePwd(int length);
 };
 

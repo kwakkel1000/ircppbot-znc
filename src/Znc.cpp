@@ -59,6 +59,7 @@ void Znc::Init(DataInterface* pData)
     Global::Instance().get_IrcData().AddConsumer(mpDataInterface);
     ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
     ReadAddUserText(Global::Instance().get_ConfigReader().GetString("znc_addusertext"));
+    ReadResetPassText(Global::Instance().get_ConfigReader().GetString("znc_resetpasstext"));
     timerlong();
     command_table = "ZncCommands";
     DatabaseData::Instance().DatabaseData::AddBinds(command_table);
@@ -354,15 +355,29 @@ void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, s
             std::string pass = generatePwd(8);
             std::string returnstr = "PRIVMSG *admin :set Password " + mReqAuth + " " + pass + "\r\n";
             Send(returnstr);
-            returnstr = "NOTICE " + mSendNick + " :";
+            /*returnstr = "NOTICE " + mSendNick + " :";
             returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
             returnstr = returnstr + ": password for ";
             returnstr = returnstr + mReqAuth;
             returnstr = returnstr + " is now ";
             returnstr = returnstr + pass;
             returnstr = returnstr + "\r\n";
-            Send(returnstr);
+            Send(returnstr);*/
 
+            SaveConfig();
+            for (unsigned int ResetPassText_it = 0; ResetPassText_it < ResetPassText.size(); ResetPassText_it++)
+            {
+                std::string tmpstring = ResetPassText[ResetPassText_it];
+                tmpstring = Global::Instance().get_Reply().irc_reply_replace(tmpstring, "%creater%", mNick);
+                tmpstring = Global::Instance().get_Reply().irc_reply_replace(tmpstring, "%password%", pass);
+                tmpstring = Global::Instance().get_Reply().irc_reply_replace(tmpstring, "%auth%", mReqAuth);
+                tmpstring = Global::Instance().get_Reply().irc_reply_replace(tmpstring, "%port%", Global::Instance().get_ConfigReader().GetString("znc_port"));
+                returnstr = "PRIVMSG " + mSendNick + " :";
+                returnstr = returnstr + tmpstring;
+                returnstr = returnstr + "\r\n";
+                Send(returnstr);
+            }
+            Send(returnstr);
             returnstr = "PRIVMSG " + mChan + " :";
             returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
             returnstr = returnstr + ": password resetted for ";
@@ -907,6 +922,36 @@ bool Znc::ReadFile( std::string filename )
         std::cout << "Could not open file '" << filename << "'" << std::endl;
     }
 
+    return false;
+}
+
+bool Znc::ReadResetPassText( std::string filename )
+{
+    std::cout << "ReadResetPassText readfile: " << filename << std::endl;
+    ResetPassText.clear();
+    std::string line;
+    std::ifstream configfile;
+    int linenr = 0;
+
+    configfile.open(filename.c_str());
+    if (configfile.is_open())
+    {
+        while (configfile.good())
+        {
+            getline(configfile,line);
+            linenr++;
+
+            boost::trim(line);
+            ResetPassText.push_back(line);
+
+        }
+        configfile.close();
+        return true;
+    }
+    else
+    {
+        std::cout << "Could not open file '" << filename << "'" << std::endl;
+    }
     return false;
 }
 
