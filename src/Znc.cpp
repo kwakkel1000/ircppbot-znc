@@ -219,8 +219,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
         {
             if (args.size() == 1)
             {
-                std::string sBindhost;
-                SetBindhost(chan, nick, auth, sBindhost, bind_access);
+                SetBindhost(chan, nick, auth, args[0], bind_access);
             }
             else
             {
