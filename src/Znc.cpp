@@ -425,6 +425,8 @@ void Znc::SetBindhost(std::string mChan, std::string mNick, std::string mAuth, s
             Send(returnstr);
             returnstr = "PRIVMSG *admin :Set BindHost " + znc_user_nick[uiUsersIndex] + " " + mBindhost + "\r\n";
             Send(returnstr);
+            returnstr = "PRIVMSG *admin :Set DenySetBindHost " + znc_user_nick[uiUsersIndex] + " true\r\n";
+            Send(returnstr);
         }
         SaveConfig();
     }
@@ -450,6 +452,8 @@ void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::
             returnstr = "PRIVMSG *admin :Set VHost " + mReqAuth + " " + Global::Instance().get_ConfigReader().GetString("znc_vhost") + "\r\n";
             Send(returnstr);
             returnstr = "PRIVMSG *admin :Set BindHost " + mReqAuth + " " + Global::Instance().get_ConfigReader().GetString("znc_vhost") + "\r\n";
+            Send(returnstr);
+            returnstr = "PRIVMSG *admin :Set DenySetBindHost " + mReqAuth + " true\r\n";
             Send(returnstr);
             Simul(mReqAuth, "QUIT");
             SaveConfig();
