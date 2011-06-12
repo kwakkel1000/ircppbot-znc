@@ -215,7 +215,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
         }
 
         // SetBindhost
-        if (boost::iequals(bind_command, "SetBindhost"))
+        if (boost::iequals(bind_command, "setbindhost"))
         {
             if (args.size() == 1)
             {
