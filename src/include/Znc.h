@@ -50,6 +50,7 @@ private:
     void ParsePrivmsg(std::string nick, std::string command, std::string chan, std::vector< std::string > args, int chantrigger);
 
     void ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas);
+    void SetBindhost(std::string mChan, std::string mNick, std::string mAuth, std::string mBindhost, int oas);
     void AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas);
     void DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, int oas);
     void Stats(std::string mChan, std::string mNick, std::string mAuth, int oas);

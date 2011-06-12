@@ -214,6 +214,21 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
             overwatch(bind_command, command, chan, nick, auth, args);
         }
 
+        // SetBindhost
+        if (boost::iequals(bind_command, "SetBindhost"))
+        {
+            if (args.size() == 1)
+            {
+                std::string sBindhost;
+                SetBindhost(chan, nick, auth, sBindhost, bind_access);
+            }
+            else
+            {
+                //help(bind_command);
+            }
+            overwatch(bind_command, command, chan, nick, auth, args);
+        }
+
         //simulall
         if (boost::iequals(bind_command, "simulall"))
         {
@@ -390,6 +405,29 @@ void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, s
             std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("user_not_authed", U.GetLanguage(mNick)) + "\r\n";
             Send(returnstring);
         }
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
+}
+
+void Znc::SetBindhost(std::string mChan, std::string mNick, std::string mAuth, std::string mBindhost, int oas)
+{
+    UsersInterface& U = Global::Instance().get_Users();
+    int oaccess = U.GetOaccess(mNick);
+    if (oaccess >= oas)
+    {
+        std::string returnstr;
+        for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
+        {
+            returnstr = "PRIVMSG *admin :Set VHost " + znc_user_nick[uiUsersIndex] + " " + mBindhost + "\r\n";
+            Send(returnstr);
+            returnstr = "PRIVMSG *admin :Set BindHost " + znc_user_nick[uiUsersIndex] + " " + mBindhost + "\r\n";
+            Send(returnstr);
+        }
+        SaveConfig();
     }
     else
     {
