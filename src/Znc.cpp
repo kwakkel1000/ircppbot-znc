@@ -445,6 +445,12 @@ void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::
     {
         if (mReqAuth != "NULL")
         {
+            returnstr = "PRIVMSG " + mChan + " :";
+            returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+            returnstr = returnstr + ": adding user: ";
+            returnstr = returnstr + mReqAuth;
+            returnstr = returnstr + "\r\n";
+            Send(returnstr);
             std::string pass = generatePwd(8);
             std::string returnstr;
             returnstr = "PRIVMSG *admin :adduser " + mReqAuth + " " + pass + " " + Global::Instance().get_ConfigReader().GetString("znc_irc_server") + "\r\n";
@@ -455,7 +461,10 @@ void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::
             Send(returnstr);
             returnstr = "PRIVMSG *admin :Set DenySetBindHost " + mReqAuth + " true\r\n";
             Send(returnstr);
+            JoinChannel(mReqAuth);
+            usleep(1000000);
             Simul(mReqAuth, "QUIT");
+            usleep(1000000);
             SaveConfig();
             for (unsigned int AddUserText_it = 0; AddUserText_it < AddUserText.size(); AddUserText_it++)
             {
