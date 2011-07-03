@@ -60,6 +60,7 @@ private:
     void SimulUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSimulString, int oas);
     void Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
     void Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
+    void Broadcast(std::string msChan, std::string msNick, std::string msAuth, std::string msBroadcastMessage, int miOperAccess);
     void znccommands(std::string mNick, std::string mAuth, int oas);
 
     void timerlong();

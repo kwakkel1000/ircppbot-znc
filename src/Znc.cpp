@@ -302,6 +302,29 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
             overwatch(bind_command, command, chan, nick, auth, args);
         }
 
+        // broadcast
+        if (boost::iequals(bind_command, "broadcast"))
+        {
+            if (args.size() >= 1)
+            {
+                std::string sBroadcastString;
+                for (unsigned int j = 0; j < args.size()-1; j++)
+                {
+                    sBroadcastString = sBroadcastString + args[j] + " ";
+                }
+                if (args.size() > 0)
+                {
+                    sBroadcastString = sBroadcastString + args[args.size()-1];
+                }
+                Broadcast(chan, nick, auth, sBroadcastString, bind_access);
+            }
+            else
+            {
+                //help(bind_command);
+            }
+            overwatch(bind_command, command, chan, nick, auth, args);
+        }
+
         if (local)		//local only
         {
 
@@ -433,6 +456,51 @@ void Znc::SetBindhost(std::string mChan, std::string mNick, std::string mAuth, s
     else
     {
         std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+        Send(returnstring);
+    }
+}
+//
+//void Znc::SetServer(std::string msChan, std::string msNick, std::string msAuth, std::string msServer, int miOperAccess)
+//{
+//    UsersInterface& U = Global::Instance().get_Users();
+//    int iOperAccess = U.GetOaccess(msNick);
+//    if (iOperAccess >= miOperAccess)
+//    {
+//        std::string sIrcSendString;
+//        for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
+//        {
+//            std::vector< std::string > server_vector;
+//            boost::split( server_vector, znc_user_setting_map[znc_user_nick[it_i]]["Server"], boost::is_any_of(" "), boost::token_compress_on );
+//            sIrcSendString = "PRIVMSG *admin :Set server " + znc_user_nick[uiUsersIndex] + " " + msServer;
+//            if(server_vector.size()>=3)
+//            {
+//                sIrcSendString = sIrcSendString + " " + server_vector[2];
+//            }
+//        }
+//        SaveConfig();
+//    }
+//    else
+//    {
+//        std::string returnstring = "NOTICE " + mNick + " :" + irc_reply("need_oaccess", U.GetLanguage(mNick)) + "\r\n";
+//        Send(returnstring);
+//    }
+//}
+
+
+
+void Znc::Broadcast(std::string msChan, std::string msNick, std::string msAuth, std::string msBroadcastMessage, int miOperAccess)
+{
+    UsersInterface& U = Global::Instance().get_Users();
+    int iOperAccess = U.GetOaccess(msNick);
+    if (iOperAccess >= miOperAccess)
+    {
+        std::string sIrcSendString;
+        sIrcSendString = "PRIVMSG *status :broadcast [ZNC Announcement (from " + msAuth + ")] " + msBroadcastMessage;
+        Send(sIrcSendString);
+    }
+    else
+    {
+        std::string returnstring = "NOTICE " + msNick + " :" + irc_reply("need_oaccess", U.GetLanguage(msNick)) + "\r\n";
         Send(returnstring);
     }
 }
