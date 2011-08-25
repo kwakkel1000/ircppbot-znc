@@ -125,17 +125,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
         {
             if (args.size() == 0)
             {
-                std::string returnstr;
-                returnstr = "PRIVMSG " + chan + " :";
-                returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-                returnstr = returnstr + ": supporter ";
-                returnstr = returnstr + nick;
-                returnstr = returnstr + " FAILED\r\n";
-                Send(returnstr);
-                returnstr = "NOTICE " + nick + " :YOU FAILED..\r\n";
-                Send(returnstr);
-                returnstr = "NOTICE " + nick + " :read the board\r\n";
-                Send(returnstr);
+                Save(chan, nick, auth, bind_access);
             }
             else
             {
@@ -497,11 +487,26 @@ void Znc::Broadcast(std::string msChan, std::string msNick, std::string msAuth, 
         std::string sIrcSendString;
         sIrcSendString = "PRIVMSG *status :broadcast [ZNC Announcement (from " + msAuth + ")] " + msBroadcastMessage;
         Send(sIrcSendString);
+        Send(Global::Instance().get_Reply().irc_privmsg(msChan, "Saved Config"));
     }
     else
     {
         std::string returnstring = "NOTICE " + msNick + " :" + irc_reply("need_oaccess", U.GetLanguage(msNick)) + "\r\n";
         Send(returnstring);
+    }
+}
+
+void Znc::Save(std::string msChan, std::string msNick, std::string msAuth, int miOperAccess)
+{
+    UsersInterface& U = Global::Instance().get_Users();
+    if (U.GetOaccess(msNick) >= miOperAccess)
+    {
+        SaveConfig();
+        Send(Global::Instance().get_Reply().irc_privmsg(msChan, "Saved Config"));
+    }
+    else
+    {
+        Send(Global::Instance().get_Reply().irc_notice(msNick, irc_reply("need_oaccess", U.GetLanguage(msNick))));
     }
 }
 
