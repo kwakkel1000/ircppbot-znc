@@ -137,7 +137,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
         // send to status
         if (boost::iequals(command, "sendstatus"))
         {
-            if (args.size() == 0)
+            if (args.size() >= 1)
             {
                 std::string _sSendString;
                 for (unsigned int j = 0; j < args.size()-1; j++)
