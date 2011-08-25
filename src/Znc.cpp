@@ -120,12 +120,35 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
         int bind_access = DatabaseData::Instance().GetAccessByBindNameAndBind(command_table, command);
         std::cout << bind_command << " " << bind_access << std::endl;
 
-        //znccommands
+        // save config
         if (boost::iequals(command, "save"))
         {
             if (args.size() == 0)
             {
                 Save(chan, nick, auth, bind_access);
+            }
+            else
+            {
+                //help(bind_command);
+            }
+            overwatch(bind_command, command, chan, nick, auth, args);
+        }
+
+        // send to status
+        if (boost::iequals(command, "sendstatus"))
+        {
+            if (args.size() == 0)
+            {
+                std::string _sSendString;
+                for (unsigned int j = 0; j < args.size()-1; j++)
+                {
+                    _sSendString = _sSendString + args[j] + " ";
+                }
+                if (args.size() > 0)
+                {
+                    _sSendString = _sSendString + args[args.size()-1];
+                }
+                SendStatus(chan,nick,auth, _sSendString, bind_access);
             }
             else
             {
@@ -496,13 +519,27 @@ void Znc::Broadcast(std::string msChan, std::string msNick, std::string msAuth, 
     }
 }
 
+void Znc::SendStatus(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess)
+{
+    UsersInterface& U = Global::Instance().get_Users();
+    if (U.GetOaccess(msNick) >= miOperAccess)
+    {
+        Send(Global::Instance().get_Reply().irc_privmsg("*status", msSendString));
+        Send(Global::Instance().get_Reply().irc_privmsg(msChan, Global::Instance().get_ConfigReader().GetString("znc_port") + ": Send to *status"));
+    }
+    else
+    {
+        Send(Global::Instance().get_Reply().irc_notice(msNick, irc_reply("need_oaccess", U.GetLanguage(msNick))));
+    }
+}
+
 void Znc::Save(std::string msChan, std::string msNick, std::string msAuth, int miOperAccess)
 {
     UsersInterface& U = Global::Instance().get_Users();
     if (U.GetOaccess(msNick) >= miOperAccess)
     {
         SaveConfig();
-        Send(Global::Instance().get_Reply().irc_privmsg(msChan, "Saved Config"));
+        Send(Global::Instance().get_Reply().irc_privmsg(msChan, Global::Instance().get_ConfigReader().GetString("znc_port") + ": Saved Config"));
     }
     else
     {
