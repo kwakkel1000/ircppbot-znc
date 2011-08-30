@@ -510,7 +510,7 @@ void Znc::Broadcast(std::string msChan, std::string msNick, std::string msAuth, 
         std::string sIrcSendString;
         sIrcSendString = "PRIVMSG *status :broadcast [ZNC Announcement (from " + msAuth + ")] " + msBroadcastMessage;
         Send(sIrcSendString);
-        Send(Global::Instance().get_Reply().irc_privmsg(msChan, "Saved Config"));
+        Send(Global::Instance().get_Reply().irc_privmsg(msChan, "Broadcast sended: " + sIrcSendString));
     }
     else
     {
