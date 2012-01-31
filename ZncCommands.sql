@@ -1,11 +1,5 @@
 -- phpMyAdmin SQL Dump
--- version 3.4.5
--- http://www.phpmyadmin.net
 --
--- Host: mysql.centravi.eu
--- Generation Time: Jan 04, 2012 at 11:28 PM
--- Server version: 5.1.49
--- PHP Version: 5.3.3-7+squeeze3
 
 SET SQL_MODE="NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -17,7 +11,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8 */;
 
 --
--- Database: `centravi_znc9004`
+-- Database: `znc`
 --
 
 -- --------------------------------------------------------
@@ -58,6 +52,8 @@ INSERT INTO `ZncCommands` (`id`, `command`, `bind`, `access`) VALUES
 (17, 'broadcast', 'broadcast', 800),
 (18, 'save', 'save', 200),
 (19, 'sendstatus', 'sendstatus', 800);
+(20, 'sendadminall', 'sendadminall', 800);
+(21, 'sendadmin', 'sendadmin', 800);
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;

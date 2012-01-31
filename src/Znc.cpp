@@ -157,6 +157,29 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
             overwatch(bind_command, command, chan, nick, auth, args);
         }
 
+        // send to admin of all users
+        if (boost::iequals(command, "sendadminall"))
+        {
+            if (args.size() >= 1)
+            {
+                std::string _sSendString;
+                for (unsigned int j = 0; j < args.size()-1; j++)
+                {
+                    _sSendString = _sSendString + args[j] + " ";
+                }
+                if (args.size() > 0)
+                {
+                    _sSendString = _sSendString + args[args.size()-1];
+                }
+                SendAdminAll(chan,nick,auth, _sSendString, bind_access);
+            }
+            else
+            {
+                //help(bind_command);
+            }
+            overwatch(bind_command, command, chan, nick, auth, args);
+        }
+
         //znccommands
         if (boost::iequals(bind_command, "znccommands"))
         {
@@ -390,6 +413,29 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
                 }
                 overwatch(bind_command, command, chan, nick, auth, args);
             }
+
+            // send to admin
+            if (boost::iequals(command, "sendadmin"))
+            {
+                if (args.size() >= 1)
+                {
+                    std::string _sSendString;
+                    for (unsigned int j = 0; j < args.size()-1; j++)
+                    {
+                        _sSendString = _sSendString + args[j] + " ";
+                    }
+                    if (args.size() > 0)
+                    {
+                        _sSendString = _sSendString + args[args.size()-1];
+                    }
+                    SendAdmin(chan,nick,auth, _sSendString, bind_access);
+                }
+                else
+                {
+                    //help(bind_command);
+                }
+                overwatch(bind_command, command, chan, nick, auth, args);
+            }
         }
     }
 }
@@ -519,6 +565,47 @@ void Znc::Broadcast(std::string msChan, std::string msNick, std::string msAuth, 
     }
 }
 
+void Znc::SendAdminAll(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess)
+{
+    UsersInterface& U = Global::Instance().get_Users();
+    if (U.GetOaccess(msNick) >= miOperAccess)
+    {
+        std::string sSearch = "%users";
+        size_t search_pos;
+        search_pos = msSendString.find(sSearch);
+        if (search_pos != std::string::npos)
+        {
+            std::string sTempSendString;
+            for (unsigned int uiNickIndex = 0; uiNickIndex < znc_user_nick.size(); uiNickIndex++)
+            {
+                sTempSendString = msSendString;
+                sTempSendString.replace(search_pos, sSearch.length(), znc_user_nick[uiNickIndex]);
+                Send(Global::Instance().get_Reply().irc_privmsg("*admin", sTempSendString));
+            }
+            Send(Global::Instance().get_Reply().irc_privmsg(msChan, Global::Instance().get_ConfigReader().GetString("znc_port") + ": Send to *admin : " + msSendString));
+        }
+        Send(Global::Instance().get_Reply().irc_notice(msNick, irc_reply("wrong_input", U.GetLanguage(msNick))));
+    }
+    else
+    {
+        Send(Global::Instance().get_Reply().irc_notice(msNick, irc_reply("need_oaccess", U.GetLanguage(msNick))));
+    }
+}
+
+void Znc::SendAdmin(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess)
+{
+    UsersInterface& U = Global::Instance().get_Users();
+    if (U.GetOaccess(msNick) >= miOperAccess)
+    {
+        Send(Global::Instance().get_Reply().irc_privmsg("*admin", msSendString));
+        Send(Global::Instance().get_Reply().irc_privmsg(msChan, Global::Instance().get_ConfigReader().GetString("znc_port") + ": Send to *admin : " + msSendString));
+    }
+    else
+    {
+        Send(Global::Instance().get_Reply().irc_notice(msNick, irc_reply("need_oaccess", U.GetLanguage(msNick))));
+    }
+}
+
 void Znc::SendStatus(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess)
 {
     UsersInterface& U = Global::Instance().get_Users();
@@ -570,6 +657,8 @@ void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::
             returnstr = "PRIVMSG *admin :Set BindHost " + mReqAuth + " " + Global::Instance().get_ConfigReader().GetString("znc_vhost") + "\r\n";
             Send(returnstr);
             returnstr = "PRIVMSG *admin :Set DenySetBindHost " + mReqAuth + " true\r\n";
+            Send(returnstr);
+            returnstr = "PRIVMSG *admin :LoadModule " + mReqAuth + " " + "admin" + "\r\n";
             Send(returnstr);
             JoinChannel(mReqAuth);
             usleep(1000000);

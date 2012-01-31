@@ -62,6 +62,8 @@ private:
     void Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas);
     void Broadcast(std::string msChan, std::string msNick, std::string msAuth, std::string msBroadcastMessage, int miOperAccess);
     void SendStatus(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess);
+    void SendAdminAll(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess);
+    void SendAdmin(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess);
     void Save(std::string msChan, std::string msNick, std::string msAuth, int miOperAccess);
     void znccommands(std::string mNick, std::string mAuth, int oas);
 
