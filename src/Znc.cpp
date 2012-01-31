@@ -573,7 +573,7 @@ void Znc::SendAdminAll(std::string msChan, std::string msNick, std::string msAut
     UsersInterface& U = Global::Instance().get_Users();
     if (U.GetOaccess(msNick) >= miOperAccess)
     {
-        std::string sSearch = "%users";
+        std::string sSearch = "%users%";
         size_t search_pos;
         search_pos = msSendString.find(sSearch);
         if (search_pos != std::string::npos)
@@ -590,7 +590,10 @@ void Znc::SendAdminAll(std::string msChan, std::string msNick, std::string msAut
             }
             Send(Global::Instance().get_Reply().irc_privmsg(msChan, Global::Instance().get_ConfigReader().GetString("znc_port") + ": Send to *admin : " + msSendString));
         }
-        Send(Global::Instance().get_Reply().irc_notice(msNick, irc_reply("wrong_input", U.GetLanguage(msNick))));
+        else
+        {
+            Send(Global::Instance().get_Reply().irc_notice(msNick, irc_reply("wrong_input", U.GetLanguage(msNick))));
+        }
     }
     else
     {
