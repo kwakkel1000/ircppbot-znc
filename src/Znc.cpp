@@ -96,7 +96,7 @@ void Znc::parse_privmsg()
 
 void Znc::ParseIrcppbotmod(std::vector< std::string > vData)
 {
-    if (vData[0] == "*ircppbot!znc@znc.in")
+    if (vData[0] == ":*ircppbot!znc@znc.in")
     {
         boost::erase_all(vData[3], ":");
         std::map< std::string, std::string > setting;
