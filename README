@@ -5,3 +5,7 @@ add conf/Znc/conf.ini to [topdir]conf/conf.ini  under the [config] section
 cp addusertext.txt.example [topdir]addusertext.txt
 make clean
 make all
+
+
+copy ZncModule/ircppbot.cpp to the znc source modules directory
+make znc and load the module (loadmodule ircppbot)
