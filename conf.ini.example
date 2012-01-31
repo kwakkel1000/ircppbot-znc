@@ -8,4 +8,4 @@ znc_irc_server=irc.server.tld port
 znc_config_file=/home/znc_9009/.znc/configs/znc.conf
 znc_local_trigger=z9
 znc_port=9009
-
+znc_account=Admin

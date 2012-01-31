@@ -503,12 +503,15 @@ void Znc::SetBindhost(std::string mChan, std::string mNick, std::string mAuth, s
         std::string returnstr;
         for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
         {
-            returnstr = "PRIVMSG *admin :Set VHost " + znc_user_nick[uiUsersIndex] + " " + mBindhost + "\r\n";
-            Send(returnstr);
-            returnstr = "PRIVMSG *admin :Set BindHost " + znc_user_nick[uiUsersIndex] + " " + mBindhost + "\r\n";
-            Send(returnstr);
-            returnstr = "PRIVMSG *admin :Set DenySetBindHost " + znc_user_nick[uiUsersIndex] + " true\r\n";
-            Send(returnstr);
+            if (znc_user_nick[uiUsersIndex] != Global::Instance().get_ConfigReader().GetString("znc_account"))
+            {
+                returnstr = "PRIVMSG *admin :Set VHost " + znc_user_nick[uiUsersIndex] + " " + mBindhost + "\r\n";
+                Send(returnstr);
+                returnstr = "PRIVMSG *admin :Set BindHost " + znc_user_nick[uiUsersIndex] + " " + mBindhost + "\r\n";
+                Send(returnstr);
+                returnstr = "PRIVMSG *admin :Set DenySetBindHost " + znc_user_nick[uiUsersIndex] + " true\r\n";
+                Send(returnstr);
+            }
         }
         SaveConfig();
     }
@@ -576,11 +579,14 @@ void Znc::SendAdminAll(std::string msChan, std::string msNick, std::string msAut
         if (search_pos != std::string::npos)
         {
             std::string sTempSendString;
-            for (unsigned int uiNickIndex = 0; uiNickIndex < znc_user_nick.size(); uiNickIndex++)
+            for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
             {
-                sTempSendString = msSendString;
-                sTempSendString.replace(search_pos, sSearch.length(), znc_user_nick[uiNickIndex]);
-                Send(Global::Instance().get_Reply().irc_privmsg("*admin", sTempSendString));
+                if (znc_user_nick[uiUsersIndex] != Global::Instance().get_ConfigReader().GetString("znc_account"))
+                {
+                    sTempSendString = msSendString;
+                    sTempSendString.replace(search_pos, sSearch.length(), znc_user_nick[uiUsersIndex]);
+                    Send(Global::Instance().get_Reply().irc_privmsg("*admin", sTempSendString));
+                }
             }
             Send(Global::Instance().get_Reply().irc_privmsg(msChan, Global::Instance().get_ConfigReader().GetString("znc_port") + ": Send to *admin : " + msSendString));
         }
@@ -760,9 +766,12 @@ void Znc::JoinAll(std::string mChan, std::string mNick, std::string mAuth, int o
     int oaccess = U.GetOaccess(mNick);
     if (oaccess >= oas)
     {
-        for (unsigned int i = 0; i < znc_user_nick.size(); i++)
+        for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
         {
-            JoinChannel(znc_user_nick[i]);
+            if (znc_user_nick[uiUsersIndex] != Global::Instance().get_ConfigReader().GetString("znc_account"))
+            {
+                JoinChannel(znc_user_nick[uiUsersIndex]);
+            }
         }
     }
     else
@@ -778,9 +787,12 @@ void Znc::VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int 
     int oaccess = U.GetOaccess(mNick);
     if (oaccess >= oas)
     {
-        for (unsigned int i = 0; i < znc_user_nick.size(); i++)
+        for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
         {
-            Voice(znc_user_nick[i]);
+            if (znc_user_nick[uiUsersIndex] != Global::Instance().get_ConfigReader().GetString("znc_account"))
+            {
+                Voice(znc_user_nick[uiUsersIndex]);
+            }
         }
     }
     else
@@ -796,9 +808,12 @@ void Znc::SimulAll(std::string mChan, std::string mNick, std::string mAuth, std:
     int oaccess = U.GetOaccess(mNick);
     if (oaccess >= oas)
     {
-        for (unsigned int i = 0; i < znc_user_nick.size(); i++)
+        for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
         {
-            Simul(znc_user_nick[i], mSimulString);
+            if (znc_user_nick[uiUsersIndex] != Global::Instance().get_ConfigReader().GetString("znc_account"))
+            {
+                Simul(znc_user_nick[uiUsersIndex], mSimulString);
+            }
         }
     }
     else
