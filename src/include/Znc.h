@@ -47,6 +47,7 @@ private:
 
     DataInterface* mpDataInterface;
     void parse_privmsg();
+    void ParseIrcppbotmod(std::vector< std::string > vData);
     void ParsePrivmsg(std::string nick, std::string command, std::string chan, std::vector< std::string > args, int chantrigger);
 
     void ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas);
