@@ -65,6 +65,15 @@ class CIrcppbotMod : public CModule {
         PutModule(sChannel + " " +  sUsername + " Ident " + pUser->GetIdent());
         PutModule(sChannel + " " +  sUsername + " RealName " + pUser->GetRealName());
         PutModule(sChannel + " " +  sUsername + " IRCServer " + pUser->GetIRCServer());
+        if (pUser->IsUserAttached())
+        {
+            PutModule(sChannel + " " +  sUsername + " Connected");
+        }
+        else
+        {
+            PutModule(sChannel + " " +  sUsername + " Not Connected");
+        }
+
     }
 
 public:
