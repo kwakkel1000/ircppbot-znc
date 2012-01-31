@@ -48,7 +48,7 @@ class CIrcppbotMod : public CModule {
 
     void Info(const CString& sLine)
     {
-        CString sUsername  = sLine.Token(1, true);
+        CString sUsername  = sLine.Token(1);
         CString sChannel = sLine.Token(2);
         CUser* pUser;
 
