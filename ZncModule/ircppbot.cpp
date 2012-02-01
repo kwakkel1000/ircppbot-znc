@@ -52,7 +52,7 @@ class CIrcppbotMod : public CModule {
         CString sUsername  = sLine.Token(1);
         CString sChannel = sLine.Token(2);
         CUser* pUser;
-        CNick* pNick;
+        const CNick* pNick;
 
         if (sUsername.empty()) {
                 PutModule("Usage: info <username channel>");
