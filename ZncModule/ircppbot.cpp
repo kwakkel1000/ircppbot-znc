@@ -61,7 +61,7 @@ class CIrcppbotMod : public CModule {
                 return;
         }
         pUser = GetUser(sUsername);
-        PutModule(sChannel + " " +  sUsername + " Nick " + pUser->GetNick());
+        PutModule(sChannel + " " +  sUsername + " Nick " + pUser->GetIRCNick());
         PutModule(sChannel + " " +  sUsername + " Ident " + pUser->GetIdent());
         PutModule(sChannel + " " +  sUsername + " RealName " + pUser->GetRealName());
         PutModule(sChannel + " " +  sUsername + " IRCServer " + pUser->GetIRCServer());
