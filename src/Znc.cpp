@@ -99,62 +99,29 @@ void Znc::ParseIrcppbotmod(std::vector< std::string > vData)
     if (vData[0] == ":*ircppbot!znc@znc.in")
     {
         boost::erase_all(vData[3], ":");
-        std::map< std::string, std::string > setting;
-        setting.clear();
-        for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
+        if (boost::iequals(vData[3], "Info"))
         {
-            if (boost::iequals(vData[4], znc_user_nick[uiUsersIndex]))
+            std::map< std::string, std::string > setting;
+            setting.clear();
+            for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
             {
-                std::string sSendString;
-                for (unsigned int j = 5; j < vData.size()-1; j++)
+                if (boost::iequals(vData[5], znc_user_nick[uiUsersIndex]))
                 {
-                    sSendString = sSendString + vData[j] + " ";
+                    std::string sSendString;
+                    for (unsigned int j = 6; j < vData.size()-1; j++)
+                    {
+                        sSendString = sSendString + vData[j] + " ";
+                    }
+                    if (vData.size() > 0)
+                    {
+                        sSendString = sSendString + vData[vData.size()-1];
+                    }
+                    Send(Global::Instance().get_Reply().irc_privmsg(vData[4], sSendString));
                 }
-                if (vData.size() > 0)
-                {
-                    sSendString = sSendString + vData[vData.size()-1];
-                }
-                Send(Global::Instance().get_Reply().irc_privmsg(vData[3], sSendString));
-                /*if (!boost::iequals(vData[4], "Done"))
-                {
-                    znc_user_setting_map[znc_user_nick[uiUsersIndex]][vData[4]] = vData[5];
-
-                }*/
-                /*Send()
-                std::string returnstr = "PRIVMSG " + mChan + " :";
-                returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-                returnstr = returnstr + ": ";
-                returnstr = returnstr + znc_user_nick[it_i];
-                returnstr = returnstr + "\r\n";
-                Send(returnstr);
-                returnstr = "PRIVMSG " + mChan + " :";
-                returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-                returnstr = returnstr + ": Nick:  ";
-                returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Nick"];
-                returnstr = returnstr + "\r\n";
-                Send(returnstr);
-                returnstr = "PRIVMSG " + mChan + " :";
-                returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-                returnstr = returnstr + ": Ident:  ";
-                returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Ident"];
-                returnstr = returnstr + "\r\n";
-                Send(returnstr);
-                returnstr = "PRIVMSG " + mChan + " :";
-                returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-                returnstr = returnstr + ": Server:  ";
-                std::vector< std::string > server_vector;
-                boost::split( server_vector, znc_user_setting_map[znc_user_nick[it_i]]["Server"], boost::is_any_of(" "), boost::token_compress_on );
-                if(server_vector.size()>=1)
-                {
-                    returnstr = returnstr + server_vector[0];
-                }
-                if(server_vector.size()>=2)
-                {
-                    returnstr = returnstr + " " + server_vector[1];
-                }
-                returnstr = returnstr + "\r\n";
-                Send(returnstr);*/
             }
+        }
+        if (boost::iequals(vData[3], "Users"))
+        {
         }
     }
 }
