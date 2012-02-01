@@ -51,7 +51,7 @@ class CIrcppbotMod : public CModule {
     {
         const map<CString, CUser*>& msUsers = CZNC::Get().GetUserMap();
         for (map<CString, CUser*>::const_iterator it = msUsers.begin(); it != msUsers.end(); ++it) {
-            PutModule(it->first);
+            PutModule("Users " + it->first);
         }
     }
 
@@ -72,17 +72,17 @@ class CIrcppbotMod : public CModule {
         }
         pUser = GetUser(sUsername);
         pNick = &pUser->GetIRCNick();
-        PutModule(sChannel + " " +  sUsername + " Nick " + pNick->GetNick());
-        PutModule(sChannel + " " +  sUsername + " Ident " + pUser->GetIdent());
-        PutModule(sChannel + " " +  sUsername + " RealName " + pUser->GetRealName());
-        PutModule(sChannel + " " +  sUsername + " IRCServer " + pUser->GetIRCServer());
+        PutModule("Info " + sChannel + " " +  sUsername + " Nick " + pNick->GetNick());
+        PutModule("Info " + sChannel + " " +  sUsername + " Ident " + pUser->GetIdent());
+        PutModule("Info " + sChannel + " " +  sUsername + " RealName " + pUser->GetRealName());
+        PutModule("Info " + sChannel + " " +  sUsername + " IRCServer " + pUser->GetIRCServer());
         if (pUser->IsUserAttached())
         {
-            PutModule(sChannel + " " +  sUsername + " Connected");
+            PutModule("Info " + sChannel + " " +  sUsername + " Connected");
         }
         else
         {
-            PutModule(sChannel + " " +  sUsername + " Not Connected");
+            PutModule("Info " + sChannel + " " +  sUsername + " Not Connected");
         }
     }
 
