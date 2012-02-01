@@ -8,6 +8,7 @@
 
 #include "znc.h"
 #include "User.h"
+#include "Nick.h"
 #include "Modules.h"
 #include "Chan.h"
 #include "IRCSock.h"
@@ -51,6 +52,7 @@ class CIrcppbotMod : public CModule {
         CString sUsername  = sLine.Token(1);
         CString sChannel = sLine.Token(2);
         CUser* pUser;
+        CNick* pNick;
 
         if (sUsername.empty()) {
                 PutModule("Usage: info <username channel>");
@@ -61,7 +63,8 @@ class CIrcppbotMod : public CModule {
                 return;
         }
         pUser = GetUser(sUsername);
-        PutModule(sChannel + " " +  sUsername + " Nick " + pUser->GetIRCNick()->GetNick());
+        pNick = pUser->GetIRCNick();
+        PutModule(sChannel + " " +  sUsername + " Nick " + pNick->GetNick());
         PutModule(sChannel + " " +  sUsername + " Ident " + pUser->GetIdent());
         PutModule(sChannel + " " +  sUsername + " RealName " + pUser->GetRealName());
         PutModule(sChannel + " " +  sUsername + " IRCServer " + pUser->GetIRCServer());
