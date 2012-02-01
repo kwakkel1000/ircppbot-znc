@@ -46,6 +46,14 @@ class CIrcppbotMod : public CModule {
             }
             return pUser;
     }
+    
+    void Users(const CString&)
+    {
+        const map<CString, CUser*>& msUsers = CZNC::Get().GetUserMap();
+        for (map<CString, CUser*>::const_iterator it = msUsers.begin(); it != msUsers.end(); ++it) {
+            PutModule(it->first);
+        }
+    }
 
     void Info(const CString& sLine)
     {
@@ -76,7 +84,6 @@ class CIrcppbotMod : public CModule {
         {
             PutModule(sChannel + " " +  sUsername + " Not Connected");
         }
-
     }
 
 public:
@@ -84,7 +91,9 @@ public:
         AddCommand("Help",         static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::PrintHelp),
             "",                              "Generates this output");
         AddCommand("Info",         static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::Info),
-            "variable [username channel]",   "Prints the info for the given user");
+            "username channel",              "Prints the info for the given user");
+        AddCommand("Users",        static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::Users),
+            "",                              "Prints the list of users");
     }
 
     virtual ~CIrcppbotMod() {}
