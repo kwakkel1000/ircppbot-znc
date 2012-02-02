@@ -149,7 +149,20 @@ public:
         }
         return true;
     }
-
+    virtual void OnJoin(const CNick& Nick, CChan& Channel) {
+        if (Channel.GetName() == "#centravi")
+        {
+            for (map<CString, CUser*>::const_iterator it = msUsers.begin(); it != msUsers.end(); ++it) {
+                CUser* pUser;
+                *pUser = it->second;
+                if (&pUser->GetIRCNick() == Nick.GetNick())
+                {
+                    PutModule("Nick " + it->first + " " + pNick->GetNick());
+                    return;
+                }
+            }            
+        }
+    }
 };
 
 template<> void TModInfo<CIrcppbotMod>(CModInfo& Info) {
