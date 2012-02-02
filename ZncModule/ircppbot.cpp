@@ -49,40 +49,57 @@ class CIrcppbotMod : public CModule {
     
     void Users(const CString&)
     {
-        const map<CString, CUser*>& msUsers = CZNC::Get().GetUserMap();
-        for (map<CString, CUser*>::const_iterator it = msUsers.begin(); it != msUsers.end(); ++it) {
-            PutModule("Users " + it->first);
+        if(m_pUser->IsAdmin())
+        {
+            const map<CString, CUser*>& msUsers = CZNC::Get().GetUserMap();
+            for (map<CString, CUser*>::const_iterator it = msUsers.begin(); it != msUsers.end(); ++it) {
+                PutModule("Users " + it->first);
+            }
+        }
+        else
+        {
+            PutModule("Error: You need to have admin rights to use this module!");
         }
     }
 
     void Info(const CString& sLine)
     {
-        CString sUsername  = sLine.Token(1);
-        CString sChannel = sLine.Token(2);
-        CUser* pUser;
-        const CNick* pNick;
-
-        if (sUsername.empty()) {
-                PutModule("Usage: info <username channel>");
-                return;
-        }
-        if (sChannel.empty()) {
-                PutModule("Usage: info <username channel>");
-                return;
-        }
-        pUser = GetUser(sUsername);
-        pNick = &pUser->GetIRCNick();
-        PutModule("Info " + sChannel + " " +  sUsername + " Nick " + pNick->GetNick());
-        PutModule("Info " + sChannel + " " +  sUsername + " Ident " + pUser->GetIdent());
-        PutModule("Info " + sChannel + " " +  sUsername + " RealName " + pUser->GetRealName());
-        PutModule("Info " + sChannel + " " +  sUsername + " IRCServer " + pUser->GetIRCServer());
-        if (pUser->IsUserAttached())
+        if(m_pUser->IsAdmin())
         {
-            PutModule("Info " + sChannel + " " +  sUsername + " Connected");
+            CString sUsername = sLine.Token(1);
+            CString sChannel = sLine.Token(2);
+            CUser* pUser;
+            const CNick* pNick;
+    
+            if (sUsername.empty()) {
+                    PutModule("Usage: info username channel");
+                    return;
+            }
+            if (sChannel.empty()) {
+                    PutModule("Usage: info username channel");
+                    return;
+            }
+            pUser = GetUser(sUsername);
+            if (!pUser)
+                return;
+
+            pNick = &pUser->GetIRCNick();
+            PutModule("Info " + sChannel + " " +  sUsername + " Nick " + pNick->GetNick());
+            PutModule("Info " + sChannel + " " +  sUsername + " Ident " + pUser->GetIdent());
+            PutModule("Info " + sChannel + " " +  sUsername + " RealName " + pUser->GetRealName());
+            PutModule("Info " + sChannel + " " +  sUsername + " IRCServer " + pUser->GetIRCServer());
+            if (pUser->IsUserAttached())
+            {
+                PutModule("Info " + sChannel + " " +  sUsername + " Connected");
+            }
+            else
+            {
+                PutModule("Info " + sChannel + " " +  sUsername + " Not Connected");
+            }
         }
         else
         {
-            PutModule("Info " + sChannel + " " +  sUsername + " Not Connected");
+            PutModule("Error: You need to have admin rights to use this module!");
         }
     }
 
@@ -97,6 +114,15 @@ public:
     }
 
     virtual ~CIrcppbotMod() {}
+    
+    virtual bool OnLoad(const CString& sArgs, CString& sErrorMsg) {
+        if (!m_pUser->IsAdmin()) {
+            sErrorMsg = "You must have admin privileges to load this module";
+            return false;
+        }
+        return true;
+    }
+
 };
 
 template<> void TModInfo<CIrcppbotMod>(CModInfo& Info) {
