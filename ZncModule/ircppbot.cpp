@@ -152,6 +152,7 @@ public:
     virtual void OnJoin(const CNick& Nick, CChan& Channel) {
         if (Channel.GetName() == "#centravi")
         {
+            const map<CString, CUser*>& msUsers = CZNC::Get().GetUserMap();
             for (map<CString, CUser*>::const_iterator it = msUsers.begin(); it != msUsers.end(); ++it) {
                 CUser* pUser;
                 *pUser = it->second;
