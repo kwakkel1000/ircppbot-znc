@@ -61,6 +61,31 @@ class CIrcppbotMod : public CModule {
             PutModule("Error: You need to have admin rights to use this module!");
         }
     }
+    
+    void Nick(const CString& sLine)
+    {
+        if(m_pUser->IsAdmin())
+        {
+            CString sUsername = sLine.Token(1);
+            CUser* pUser;
+            const CNick* pNick;
+    
+            if (sUsername.empty()) {
+                PutModule("Usage: nick username");
+                return;
+            }
+            pUser = GetUser(sUsername);
+            if (!pUser)
+                return;
+
+            pNick = &pUser->GetIRCNick();
+            PutModule("Nick " + sUsername + " " + pNick->GetNick());
+        }
+        else
+        {
+            PutModule("Error: You need to have admin rights to use this module!");
+        }
+    }
 
     void Info(const CString& sLine)
     {
@@ -72,29 +97,29 @@ class CIrcppbotMod : public CModule {
             const CNick* pNick;
     
             if (sUsername.empty()) {
-                    PutModule("Usage: info username channel");
-                    return;
+                PutModule("Usage: info username channel");
+                return;
             }
             if (sChannel.empty()) {
-                    PutModule("Usage: info username channel");
-                    return;
+                PutModule("Usage: info username channel");
+                return;
             }
             pUser = GetUser(sUsername);
             if (!pUser)
                 return;
 
             pNick = &pUser->GetIRCNick();
-            PutModule("Info " + sChannel + " " +  sUsername + " Nick " + pNick->GetNick());
-            PutModule("Info " + sChannel + " " +  sUsername + " Ident " + pUser->GetIdent());
-            PutModule("Info " + sChannel + " " +  sUsername + " RealName " + pUser->GetRealName());
-            PutModule("Info " + sChannel + " " +  sUsername + " IRCServer " + pUser->GetIRCServer());
+            PutModule("Info " + sChannel + " " + sUsername + " Nick " + pNick->GetNick());
+            PutModule("Info " + sChannel + " " + sUsername + " Ident " + pUser->GetIdent());
+            PutModule("Info " + sChannel + " " + sUsername + " RealName " + pUser->GetRealName());
+            PutModule("Info " + sChannel + " " + sUsername + " IRCServer " + pUser->GetIRCServer());
             if (pUser->IsUserAttached())
             {
-                PutModule("Info " + sChannel + " " +  sUsername + " Connected");
+                PutModule("Info " + sChannel + " " + sUsername + " Connected");
             }
             else
             {
-                PutModule("Info " + sChannel + " " +  sUsername + " Not Connected");
+                PutModule("Info " + sChannel + " " + sUsername + " Not Connected");
             }
         }
         else
@@ -109,6 +134,8 @@ public:
             "",                              "Generates this output");
         AddCommand("Info",         static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::Info),
             "username channel",              "Prints the info for the given user");
+        AddCommand("Nick",         static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::Nick),
+            "username",                      "Prints the nick for the given user");
         AddCommand("Users",        static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::Users),
             "",                              "Prints the list of users");
     }
