@@ -149,7 +149,7 @@ public:
         }
         return true;
     }
-    virtual void OnJoin(const CNick& Nick, CChan& Channel) {
+    virtual void OnJoin(const CNick& mNick, CChan& Channel) {
         if (Channel.GetName() == "#centravi")
         {
             const map<CString, CUser*>& msUsers = CZNC::Get().GetUserMap();
@@ -158,9 +158,9 @@ public:
                 pUser = it->second;
                 const CNick* pNick;
                 pNick = &pUser->GetIRCNick();
-                if (pNick->GetNick() == Nick.GetNick())
+                if (pNick->GetNick() == mNick.GetNick())
                 {
-                    PutModule("Nick " + it->first + " " + Nick.GetNick());
+                    PutModule("Nick " + it->first + " " + mNick.GetNick());
                     return;
                 }
             }            
