@@ -156,9 +156,11 @@ public:
             for (map<CString, CUser*>::const_iterator it = msUsers.begin(); it != msUsers.end(); ++it) {
                 CUser* pUser;
                 pUser = it->second;
-                if (&pUser->GetIRCNick() == Nick.GetNick())
+                const CNick* pNick;
+                pNick = &pUser->GetIRCNick();
+                if (pNick->GetNick() == Nick.GetNick())
                 {
-                    PutModule("Nick " + it->first + " " + pNick->GetNick());
+                    PutModule("Nick " + it->first + " " + Nick.GetNick());
                     return;
                 }
             }            
