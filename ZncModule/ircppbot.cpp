@@ -155,7 +155,7 @@ public:
             const map<CString, CUser*>& msUsers = CZNC::Get().GetUserMap();
             for (map<CString, CUser*>::const_iterator it = msUsers.begin(); it != msUsers.end(); ++it) {
                 CUser* pUser;
-                *pUser = it->second;
+                pUser = it->second;
                 if (&pUser->GetIRCNick() == Nick.GetNick())
                 {
                     PutModule("Nick " + it->first + " " + pNick->GetNick());
