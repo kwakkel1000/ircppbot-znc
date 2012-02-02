@@ -101,8 +101,8 @@ void Znc::ParseIrcppbotmod(std::vector< std::string > vData)
         boost::erase_all(vData[3], ":");
         if (boost::iequals(vData[3], "Info"))
         {
-            std::map< std::string, std::string > setting;
-            setting.clear();
+            //std::map< std::string, std::string > setting;
+            //setting.clear();
             for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
             {
                 if (boost::iequals(vData[5], znc_user_nick[uiUsersIndex]))
@@ -122,6 +122,16 @@ void Znc::ParseIrcppbotmod(std::vector< std::string > vData)
         }
         if (boost::iequals(vData[3], "Users"))
         {
+        }
+        if (boost::iequals(vData[3], "Nick"))
+        {
+            for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
+            {
+                if (boost::iequals(vData[4], znc_user_nick[uiUsersIndex]))
+                {
+                    Voice(vData[5]);
+                }
+            }
         }
     }
 }
@@ -827,7 +837,8 @@ void Znc::VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int 
         {
             if (znc_user_nick[uiUsersIndex] != Global::Instance().get_ConfigReader().GetString("znc_account"))
             {
-                Voice(znc_user_nick[uiUsersIndex]);
+                Send(Global::Instance().get_Reply().irc_privmsg("*ircppbot", "nick " + znc_user_nick[uiUsersIndex]));
+                //Voice(znc_user_nick[uiUsersIndex]);
             }
         }
     }
