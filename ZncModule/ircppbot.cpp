@@ -9,28 +9,11 @@
 #include "znc.h"
 #include "User.h"
 #include "Nick.h"
-//#include "Modules.h"
 #include "Chan.h"
 #include "IRCSock.h"
-/*
-template<std::size_t N>
-struct array_size_helper {
-    char __place_holder[N];
-};
 
-template<class T, std::size_t N>
-static array_size_helper<N> array_size(T (&)[N]) {
-    return array_size_helper<N>();
-}
 
-#define ARRAY_SIZE(array) sizeof(array_size((array)))
-*/
 class CIrcppbotMod : public CGlobalModule {
-    //using CModule::PutModule;
-
-    /*void PrintHelp(const CString&) {
-        HandleHelpCommand();
-    }*/
 
     CUser* GetUser(const CString& sUsername) {
             if (sUsername.Equals("$me"))
@@ -46,22 +29,8 @@ class CIrcppbotMod : public CGlobalModule {
             }
             return pUser;
     }
-/*
-    void Users(const CString&)
-    {
-        if(m_pUser->IsAdmin())
-        {
-            const map<CString, CUser*>& msUsers = CZNC::Get().GetUserMap();
-            for (map<CString, CUser*>::const_iterator it = msUsers.begin(); it != msUsers.end(); ++it) {
-                PutModule("Users " + it->first);
-            }
-        }
-        else
-        {
-            PutModule("Error: You need to have admin rights to use this module!");
-        }
-    }
-*/
+
+
     void Nick(const CString& sLine)
     {
         if(m_pUser->IsAdmin())
@@ -141,6 +110,11 @@ class CIrcppbotMod : public CGlobalModule {
             m_sIdleChannel = sLine.Token(2);
             SetNV("idlechannel", m_sIdleChannel);
         }
+        else if (sWhat.Equals("AdminUser"))
+        {
+            m_sAdminUser = sLine.Token(2);
+            SetNV("adminuser", m_sAdminUser);
+        }
     }
 
     void Show(const CString&)
@@ -151,9 +125,12 @@ class CIrcppbotMod : public CGlobalModule {
             return;
         }
         PutModule("IdleChannel " + m_sIdleChannel);
+        PutModule("AdminUser " + m_sAdminUser);
     }
 private:
     CString m_sIdleChannel;
+    CString m_sAdminUser;
+
 public:
     GLOBALMODCONSTRUCTOR(CIrcppbotMod) {
             AddHelpCommand();
@@ -162,37 +139,19 @@ public:
             AddCommand("Set", static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::Set));
             AddCommand("Show", static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::Show));
     }
-    /*MODCONSTRUCTOR(CIrcppbotMod) {
-        AddCommand("Help",         static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::PrintHelp),
-            "",                              "Generates this output");
-        AddCommand("Info",         static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::Info),
-            "username channel",              "Prints the info for the given user");
-        AddCommand("Nick",         static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::Nick),
-            "username",                      "Prints the nick for the given user");
-        AddCommand("Users",        static_cast<CModCommand::ModCmdFunc>(&CIrcppbotMod::Users),
-            "",                              "Prints the list of users");
-    }*/
 
     virtual ~CIrcppbotMod() {}
 
-/*    virtual bool OnLoad(const CString& sArgs, CString& sErrorMsg) {
-        if (!m_pUser->IsAdmin()) {
-            sErrorMsg = "You must have admin privileges to load this module";
-            return false;
-        }
-        return true;
-    }
-*/
-
     virtual bool OnLoad(const CString& sArgs, CString& sErrorMsg) {
         m_sIdleChannel = GetNV("idlechannel");
+        m_sAdminUser = GetNV("adminuser");
         return true;
     }
 
     virtual void OnJoin(const CNick& mNick, CChan& Channel) {
         if (Channel.GetName() == m_sIdleChannel)
         {
-            CUser *pUserTmp = CZNC::Get().FindUser("Admin");
+            CUser *pUserTmp = CZNC::Get().FindUser(m_sAdminUser);
             if (pUserTmp == m_pUser)
             {
                 const map<CString, CUser*>& msUsers = CZNC::Get().GetUserMap();
