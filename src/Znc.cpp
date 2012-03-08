@@ -125,11 +125,14 @@ void Znc::ParseIrcppbotmod(std::vector< std::string > vData)
         }
         if (boost::iequals(vData[3], "Nick"))
         {
-            for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
+            if (vData.size() > 4)
             {
-                if (boost::iequals(vData[4], znc_user_nick[uiUsersIndex]))
+                for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
                 {
-                    Voice(vData[5]);
+                    if (boost::iequals(vData[4], znc_user_nick[uiUsersIndex]))
+                    {
+                        Voice(vData[5]);
+                    }
                 }
             }
         }
