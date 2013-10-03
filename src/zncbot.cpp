@@ -32,6 +32,7 @@
 
 
 #include <ircppbot/managementscontainer.h>
+#include <ircppbot/core/botlib.h>
 
 #include <gframe/output.h>
 #include <gframe/versions.h>
@@ -75,50 +76,61 @@ zncbot::~zncbot()
 }
 
 
-void Znc::Init(DataInterface* pData)
+
+/**
+* sets run var to true, so while loops start to run
+* Starts the threads to parse
+*
+*/
+void zncbot::read()
 {
-    srand ( time(NULL) );
-    mpDataInterface = pData;
-    mpDataInterface->Init(false, false, false, true);
-    Global::Instance().get_IrcData().AddConsumer(mpDataInterface);
-    ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
-    ReadAddUserText(Global::Instance().get_ConfigReader().GetString("znc_addusertext"));
-    ReadResetPassText(Global::Instance().get_ConfigReader().GetString("znc_resetpasstext"));
-    timerlong();
-    command_table = "ZncCommands";
-    DatabaseData::Instance().DatabaseData::AddBinds(command_table);
+    m_Run = true;
+    //m_ModesThread = std::shared_ptr<std::thread>(new std::thread(std::bind(&channelbot::parseModes, this)));
+    //m_EventsThread = std::shared_ptr<std::thread>(new std::thread(std::bind(&channelbot::parseEvents, this)));
+    m_PrivmsgThread = std::shared_ptr<std::thread>(new std::thread(std::bind(&zncbot::parsePrivmsg, this)));
 }
 
-
-void Znc::stop()
+/**
+* stops the running threads
+*
+*/
+void zncbot::stop()
 {
-    run = false;
-    mpDataInterface->stop();
-    std::cout << "Znc::stop" << std::endl;
-    privmsg_parse_thread->join();
-    std::cout << "privmsg_parse_thread stopped" << std::endl;
+    m_Run = false;
+    m_IrcData->stop();
+    output::instance().addOutput("zncbot::stop", 6);
+    //m_ModesThread->join();
+    //output::instance().addOutput("channelbot::stop m_ModesThread stopped", 6);
+    //m_EventsThread->join();
+    //output::instance().addOutput("channelbot::stop m_EventsThread stopped", 6);
+    m_PrivmsgThread->join();
+    output::instance().addOutput("zncbot::stop m_PrivmsgThread stopped", 6);
+    irc::instance().delConsumer(m_IrcData);
+    delete m_IrcData;
 }
 
-void Znc::read()
+/**
+* Initialisation
+* Initialise some vars for later use
+* @param pData the value to give to mpDataInterface
+*
+*/
+
+void zncbot::init()
 {
-    run = true;
-    assert(!privmsg_parse_thread);
-    privmsg_parse_thread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&Znc::parse_privmsg, this)));
+    //ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
+    //ReadAddUserText(Global::Instance().get_ConfigReader().GetString("znc_addusertext"));
+    //ReadResetPassText(Global::Instance().get_ConfigReader().GetString("znc_resetpasstext"));
+
+    m_IrcData = new ircdata();
+    //m_IrcData->setModes(true);
+    //m_IrcData->setEvents(true);
+    m_IrcData->setPrivmsg(true);
+    irc::instance().addConsumer(m_IrcData);
 }
 
-void Znc::parse_privmsg()
-{
-    std::vector< std::string > data;
-    while(run)
-    {
-        data = mpDataInterface->GetPrivmsgQueue();
-        PRIVMSG(data, Global::Instance().get_ConfigReader().GetString("znc_trigger"));
-        ParseIrcppbotmod(data);
-    }
-}
-
-
-void Znc::ParseIrcppbotmod(std::vector< std::string > vData)
+/*
+void zncbot::ParseIrcppbotmod(std::vector< std::string > vData)
 {
     if (vData[0] == ":*ircppbot!znc@znc.in")
     {
@@ -162,8 +174,254 @@ void Znc::ParseIrcppbotmod(std::vector< std::string > vData)
         }
     }
 }
+*/
+void zncbot::parsePrivmsg()
+{
+    output::instance().addOutput("void channelbot::parsePrivmsg()");
+    std::vector< std::string > data;
+    while(m_Run)
+    {
+        data = m_IrcData->getPrivmsgQueue();
+        if (!m_Run)
+        {
+            return;
+        }
+        int parsed = 0;
 
-void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, std::vector< std::string > args, int chantrigger)
+        std::string global_trigger = Global::Instance().get_ConfigReader().GetString("libzncbot.globaltrigger");
+        std::string local_trigger = Global::Instance().get_ConfigReader().GetString("libzncbot.localtrigger");
+
+        std::string trigger = configreader::instance().getString("libchannelbot.trigger");
+        std::vector< std::string > args;
+        std::string firstWord;
+        size_t chanpos1 = std::string::npos;
+        size_t chanpos2 = std::string::npos;
+        size_t chanpos3 = std::string::npos;
+        size_t triggerpos = std::string::npos;
+        chanpos1 = data[2].find("#");
+        chanpos2 = data[3].find("#");
+        std::string channelName = "";
+        std::string command = "";
+        std::string userName = data[0];
+        BotLib::HostmaskToNick(userName);
+//        nickFromHostmask(userName);
+        if (data.size() >= 4)
+        {
+            firstWord = data[3];
+            deleteFirst(firstWord, ":");
+        }
+        triggerpos = firstWord.substr(0, trigger.length()).find(trigger);
+        if (firstWord.substr(0, trigger.length()) == trigger)
+        {
+            firstWord = firstWord.substr(trigger.length());
+        }
+        if (data.size() >= 5)
+        {
+            chanpos3 = data[4].find("#");
+        }
+        if (firstWord != "")
+        {
+            // PRIVMSG ... :!;
+            if (triggerpos != std::string::npos)
+            {
+                if (chanpos2 != std::string::npos && chanpos3 == std::string::npos) // chanpos1 yes/no both valid
+                {
+                    // PRIVMSG userName #channelName :!#channelName command || PRIVMSG userName bot :!#channelName command
+                    if (data.size() >= 5)
+                    {
+                        channelName = firstWord;
+                        command = data[4];
+                        for (size_t i = 5 ; i < data.size() ; i++)
+                        {
+                            args.push_back(data[i]);
+                        }
+                        parsed++;
+                        //ParsePrivmsg(userName, command, channelName, args, chantrigger);
+                    }
+                }
+                else if (chanpos1 != std::string::npos && chanpos2 == std::string::npos && chanpos3 == std::string::npos)
+                {
+                    // PRIVMSG userName #channelName :!command
+                    if (data.size() >= 4)
+                    {
+                        command = firstWord;
+                        channelName = data[2];
+                        for (size_t i = 4 ; i < data.size() ; i++)
+                        {
+                            args.push_back(data[i]);
+                        }
+                        parsed++;
+                        //ParsePrivmsg(userName, command, channelName, args, chantrigger);
+                    }
+                }
+                else if (chanpos1 == std::string::npos && chanpos2 == std::string::npos && chanpos3 == std::string::npos)
+                {
+                    // PRIVMSG userName bot :!command
+                    if (data.size() >= 4)
+                    {
+                        command = firstWord;
+                        channelName = ""; // not needed?
+                        for (size_t i = 4 ; i < data.size() ; i++)
+                        {
+                            args.push_back(data[i]);
+                        }
+                        parsed++;
+                        //ParsePrivmsg(userName, command, channelName, args, chantrigger);
+                    }
+                }
+                else if (chanpos2 == std::string::npos && chanpos3 != std::string::npos) // chanpos1 yes/no both valid
+                {
+                    // PRIVMSG userName #channelName :!command #channelName || PRIVMSG userName bot :!command #channelName
+                    if (data.size() >= 5)
+                    {
+                        command = firstWord;
+                        channelName = data[4];
+                        for (size_t i = 5; i < data.size() ; i++)
+                        {
+                            args.push_back(data[i]);
+                        }
+                        parsed++;
+                        //ParsePrivmsg(userName, command, channelName, args, chantrigger);
+                    }
+                }
+            }
+            else
+            {
+                if (chanpos1 == std::string::npos && chanpos2 != std::string::npos && chanpos3 == std::string::npos)
+                {
+                    // PRIVMSG userName bot :#channelName command
+                    if (data.size() >= 5)
+                    {
+                        channelName = firstWord;
+                        command = data[4];
+                        for (size_t i = 5 ; i < data.size() ; i++)
+                        {
+                            args.push_back(data[i]);
+                        }
+                        parsed++;
+                        //ParsePrivmsg(userName, command, channelName, args, chantrigger);
+                    }
+                }
+                else if (chanpos1 == std::string::npos && chanpos2 == std::string::npos && chanpos3 != std::string::npos)
+                {
+                    // PRIVMSG userName bot :command #channelName
+                    if (data.size() >= 5)
+                    {
+                        channelName = data[4];
+                        command = firstWord;
+                        for (size_t i = 5; i < data.size() ; i++)
+                        {
+                            args.push_back(data[i]);
+                        }
+                        parsed++;
+                        //ParsePrivmsg(userName, command, channelName, args, chantrigger);
+                    }
+                }
+                else if (chanpos1 == std::string::npos && chanpos2 == std::string::npos && chanpos3 == std::string::npos)
+                {
+                    // PRIVMSG userName bot :command
+                    if (data.size() >= 4)
+                    {
+                        channelName = ""; // not needed?
+                        command = firstWord;
+                        for (size_t i = 4 ; i < data.size() ; i++)
+                        {
+                            args.push_back(data[i]);
+                        }
+                        parsed++;
+                        //ParsePrivmsg(userName, command, channelName, args, chantrigger);
+                    }
+                }
+            }
+        }
+        if (parsed > 1)
+        {
+            output::instance().addStatus(false, "void channelbot::parsePrivmsg() parsed > 1???");
+        }
+        if (parsed != 1)
+        {
+            continue;
+        }
+
+        std::string userAuth = "";
+        int userChannelAccess = -1;
+        std::shared_ptr<user> l_User = users::instance().get(userName);
+        if (l_User != nullptr)
+        {
+            userAuth = l_User->getAuth().first;
+        }
+        /*if (users::instance().findUser(userName))
+{
+userAuth = users::instance().getUser(userName).getAuth();
+}*/
+        std::string overwatchString = "[" + output::instance().sFormatTime("%d-%m-%Y %H:%M:%S") + "] [" + userName + ":" + userAuth + "] ";
+
+        // if there is a channel, add it to the string, including the amount of access the user has to this channel
+        if (channelName != "")
+        {
+            //userChannelAccess = channelbotchannels.getChannel(channelName).getAccess(userAuth);
+            std::shared_ptr<cchannel> l_Cchannel = getCchannel(channelName);
+            if (l_Cchannel != nullptr)
+            {
+                std::shared_ptr<cauth> l_Cauth = l_Cchannel->getAuth(userAuth);
+                if (l_Cauth != nullptr)
+                {
+                    userChannelAccess = l_Cauth->getAccess();
+                }
+            }
+            overwatchString = overwatchString + "[" + channelName + ":" + glib::stringFromInt(userChannelAccess) + "] ";
+        }
+        else
+        {
+            overwatchString = overwatchString + "[no channel] ";
+        }
+
+        // if god bla bla
+        if (false)
+        {
+            overwatchString = overwatchString + "[G] ";
+        }
+        // command is still the command alias
+        overwatchString = overwatchString + command;
+
+        // parse the irc command alias to a command
+        int access = 1000;
+        binds::bindelement bindElement;
+        if (binds::instance().getBind(bindElement, command, mNAME))
+        {
+            command = bindElement.command;
+            access = bindElement.access;
+        }
+        else
+        {
+            command = "";
+            //return;
+        }
+        // command is now the alias parsed to a command
+        overwatchString = overwatchString + ":" + command + "(" + glib::stringFromInt(access) + ")";
+        // put all the remaining arguments in a string
+        for (size_t argsIterator = 0; argsIterator < args.size(); argsIterator++)
+        {
+            overwatchString = overwatchString + " " + args[argsIterator];
+        }
+        irc::instance().addLowPrioritySendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("overwatchchannel"), overwatchString));
+
+    }
+}
+
+void zncbot::version(std::string target, std::string userName)
+{
+    std::vector< std::string > versionsVector;
+    versionsVector = versions::instance().getVersions();
+
+    for (size_t versionsVectorIterator = 0; versionsVectorIterator < versionsVector.size(); versionsVectorIterator++)
+    {
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(target, userName + ": " + versionsVector[versionsVectorIterator]));
+    }
+}
+
+/*
+void zncbot::ParsePrivmsg(std::string nick, std::string command, std::string chan, std::vector< std::string > args, int chantrigger)
 {
     UsersInterface& U = Global::Instance().get_Users();
     std::string auth = U.GetAuth(nick);
@@ -510,7 +768,7 @@ void Znc::ParsePrivmsg(std::string nick, std::string command, std::string chan, 
     }
 }
 
-void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas)
+void zncbot::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas)
 {
     UsersInterface& U = Global::Instance().get_Users();
     int oaccess = U.GetOaccess(mNick);
@@ -521,14 +779,14 @@ void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, s
             std::string pass = generatePwd(8);
             std::string returnstr = "PRIVMSG *admin :set Password " + mReqAuth + " " + pass + "\r\n";
             Send(returnstr);
-            /*returnstr = "NOTICE " + mSendNick + " :";
-            returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-            returnstr = returnstr + ": password for ";
-            returnstr = returnstr + mReqAuth;
-            returnstr = returnstr + " is now ";
-            returnstr = returnstr + pass;
-            returnstr = returnstr + "\r\n";
-            Send(returnstr);*/
+            //returnstr = "NOTICE " + mSendNick + " :";
+            //returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+            //returnstr = returnstr + ": password for ";
+            //returnstr = returnstr + mReqAuth;
+            //returnstr = returnstr + " is now ";
+            //returnstr = returnstr + pass;
+            //returnstr = returnstr + "\r\n";
+            //Send(returnstr);
 
             SaveConfig();
             for (unsigned int ResetPassText_it = 0; ResetPassText_it < ResetPassText.size(); ResetPassText_it++)
@@ -564,7 +822,7 @@ void Znc::ResetPasswd(std::string mChan, std::string mNick, std::string mAuth, s
     }
 }
 
-void Znc::SetBindhost(std::string mChan, std::string mNick, std::string mAuth, std::string mBindhost, int oas)
+void zncbot::SetBindhost(std::string mChan, std::string mNick, std::string mAuth, std::string mBindhost, int oas)
 {
     UsersInterface& U = Global::Instance().get_Users();
     int oaccess = U.GetOaccess(mNick);
@@ -592,7 +850,7 @@ void Znc::SetBindhost(std::string mChan, std::string mNick, std::string mAuth, s
     }
 }
 //
-//void Znc::SetServer(std::string msChan, std::string msNick, std::string msAuth, std::string msServer, int miOperAccess)
+//void zncbot::SetServer(std::string msChan, std::string msNick, std::string msAuth, std::string msServer, int miOperAccess)
 //{
 //    UsersInterface& U = Global::Instance().get_Users();
 //    int iOperAccess = U.GetOaccess(msNick);
@@ -620,7 +878,7 @@ void Znc::SetBindhost(std::string mChan, std::string mNick, std::string mAuth, s
 
 
 
-void Znc::Broadcast(std::string msChan, std::string msNick, std::string msAuth, std::string msBroadcastMessage, int miOperAccess)
+void zncbot::Broadcast(std::string msChan, std::string msNick, std::string msAuth, std::string msBroadcastMessage, int miOperAccess)
 {
     UsersInterface& U = Global::Instance().get_Users();
     int iOperAccess = U.GetOaccess(msNick);
@@ -638,7 +896,7 @@ void Znc::Broadcast(std::string msChan, std::string msNick, std::string msAuth, 
     }
 }
 
-void Znc::SendAdminAll(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess)
+void zncbot::SendAdminAll(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess)
 {
     UsersInterface& U = Global::Instance().get_Users();
     if (U.GetOaccess(msNick) >= miOperAccess)
@@ -671,7 +929,7 @@ void Znc::SendAdminAll(std::string msChan, std::string msNick, std::string msAut
     }
 }
 
-void Znc::SendAdmin(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess)
+void zncbot::SendAdmin(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess)
 {
     UsersInterface& U = Global::Instance().get_Users();
     if (U.GetOaccess(msNick) >= miOperAccess)
@@ -685,7 +943,7 @@ void Znc::SendAdmin(std::string msChan, std::string msNick, std::string msAuth, 
     }
 }
 
-void Znc::SendStatus(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess)
+void zncbot::SendStatus(std::string msChan, std::string msNick, std::string msAuth, std::string msSendString, int miOperAccess)
 {
     UsersInterface& U = Global::Instance().get_Users();
     if (U.GetOaccess(msNick) >= miOperAccess)
@@ -699,7 +957,7 @@ void Znc::SendStatus(std::string msChan, std::string msNick, std::string msAuth,
     }
 }
 
-void Znc::Save(std::string msChan, std::string msNick, std::string msAuth, int miOperAccess)
+void zncbot::Save(std::string msChan, std::string msNick, std::string msAuth, int miOperAccess)
 {
     UsersInterface& U = Global::Instance().get_Users();
     if (U.GetOaccess(msNick) >= miOperAccess)
@@ -713,7 +971,7 @@ void Znc::Save(std::string msChan, std::string msNick, std::string msAuth, int m
     }
 }
 
-void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas)
+void zncbot::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSendNick, int oas)
 {
     UsersInterface& U = Global::Instance().get_Users();
     int oaccess = U.GetOaccess(mNick);
@@ -778,7 +1036,7 @@ void Znc::AddUser(std::string mChan, std::string mNick, std::string mAuth, std::
     }
 }
 
-void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, int oas)
+void zncbot::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, int oas)
 {
     UsersInterface& U = Global::Instance().get_Users();
     int oaccess = U.GetOaccess(mNick);
@@ -801,7 +1059,7 @@ void Znc::DelUser(std::string mChan, std::string mNick, std::string mAuth, std::
     }
 }
 
-void Znc::Stats(std::string mChan, std::string mNick, std::string mAuth, int oas)
+void zncbot::Stats(std::string mChan, std::string mNick, std::string mAuth, int oas)
 {
     ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
     UsersInterface& U = Global::Instance().get_Users();
@@ -833,7 +1091,7 @@ void Znc::Stats(std::string mChan, std::string mNick, std::string mAuth, int oas
     }
 }
 
-void Znc::JoinAll(std::string mChan, std::string mNick, std::string mAuth, int oas)
+void zncbot::JoinAll(std::string mChan, std::string mNick, std::string mAuth, int oas)
 {
     UsersInterface& U = Global::Instance().get_Users();
     int oaccess = U.GetOaccess(mNick);
@@ -854,7 +1112,7 @@ void Znc::JoinAll(std::string mChan, std::string mNick, std::string mAuth, int o
     }
 }
 
-void Znc::VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int oas)
+void zncbot::VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int oas)
 {
     UsersInterface& U = Global::Instance().get_Users();
     int oaccess = U.GetOaccess(mNick);
@@ -876,7 +1134,7 @@ void Znc::VoiceAll(std::string mChan, std::string mNick, std::string mAuth, int 
     }
 }
 
-void Znc::SimulAll(std::string mChan, std::string mNick, std::string mAuth, std::string mSimulString, int oas)
+void zncbot::SimulAll(std::string mChan, std::string mNick, std::string mAuth, std::string mSimulString, int oas)
 {
     UsersInterface& U = Global::Instance().get_Users();
     int oaccess = U.GetOaccess(mNick);
@@ -897,7 +1155,7 @@ void Znc::SimulAll(std::string mChan, std::string mNick, std::string mAuth, std:
     }
 }
 
-void Znc::SimulUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSimulString, int oas)
+void zncbot::SimulUser(std::string mChan, std::string mNick, std::string mAuth, std::string mReqAuth, std::string mSimulString, int oas)
 {
     UsersInterface& U = Global::Instance().get_Users();
     int oaccess = U.GetOaccess(mNick);
@@ -912,7 +1170,7 @@ void Znc::SimulUser(std::string mChan, std::string mNick, std::string mAuth, std
     }
 }
 
-void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
+void zncbot::Search(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
     ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
     boost::to_lower(mSearchString);
@@ -955,7 +1213,7 @@ void Znc::Search(std::string mChan, std::string mNick, std::string mAuth, std::s
     }
 }
 
-void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
+void zncbot::Info(std::string mChan, std::string mNick, std::string mAuth, std::string mSearchString, int oas)
 {
     ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
     boost::to_lower(mSearchString);
@@ -983,40 +1241,40 @@ void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::str
             if (searchpos != std::string::npos)
             {
                 Send(Global::Instance().get_Reply().irc_privmsg("*ircppbot", "info " + znc_user_nick[it_i] + " " + mChan));
-                /*
-                std::string returnstr = "PRIVMSG " + mChan + " :";
-                returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-                returnstr = returnstr + ": ";
-                returnstr = returnstr + znc_user_nick[it_i];
-                returnstr = returnstr + "\r\n";
-                Send(returnstr);
-                returnstr = "PRIVMSG " + mChan + " :";
-                returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-                returnstr = returnstr + ": Nick:  ";
-                returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Nick"];
-                returnstr = returnstr + "\r\n";
-                Send(returnstr);
-                returnstr = "PRIVMSG " + mChan + " :";
-                returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-                returnstr = returnstr + ": Ident:  ";
-                returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Ident"];
-                returnstr = returnstr + "\r\n";
-                Send(returnstr);
-                returnstr = "PRIVMSG " + mChan + " :";
-                returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
-                returnstr = returnstr + ": Server:  ";
-                std::vector< std::string > server_vector;
-                boost::split( server_vector, znc_user_setting_map[znc_user_nick[it_i]]["Server"], boost::is_any_of(" "), boost::token_compress_on );
-                if(server_vector.size()>=1)
-                {
-                    returnstr = returnstr + server_vector[0];
-                }
-                if(server_vector.size()>=2)
-                {
-                    returnstr = returnstr + " " + server_vector[1];
-                }
-                returnstr = returnstr + "\r\n";
-                Send(returnstr);*/
+                
+                //std::string returnstr = "PRIVMSG " + mChan + " :";
+                //returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+                //returnstr = returnstr + ": ";
+                //returnstr = returnstr + znc_user_nick[it_i];
+                //returnstr = returnstr + "\r\n";
+                //Send(returnstr);
+                //returnstr = "PRIVMSG " + mChan + " :";
+                //returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+                //returnstr = returnstr + ": Nick:  ";
+                //returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Nick"];
+                //returnstr = returnstr + "\r\n";
+                //Send(returnstr);
+                //returnstr = "PRIVMSG " + mChan + " :";
+                //returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+                //returnstr = returnstr + ": Ident:  ";
+                //returnstr = returnstr + znc_user_setting_map[znc_user_nick[it_i]]["Ident"];
+                //returnstr = returnstr + "\r\n";
+                //Send(returnstr);
+                //returnstr = "PRIVMSG " + mChan + " :";
+                //returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_port");
+                //returnstr = returnstr + ": Server:  ";
+                //std::vector< std::string > server_vector;
+                //boost::split( server_vector, znc_user_setting_map[znc_user_nick[it_i]]["Server"], boost::is_any_of(" "), boost::token_compress_on );
+                //if(server_vector.size()>=1)
+                //{
+                //    returnstr = returnstr + server_vector[0];
+                //}
+                //if(server_vector.size()>=2)
+                //{
+                //    returnstr = returnstr + " " + server_vector[1];
+                //}
+                //returnstr = returnstr + "\r\n";
+                //Send(returnstr);
             }
         }
     }
@@ -1027,7 +1285,7 @@ void Znc::Info(std::string mChan, std::string mNick, std::string mAuth, std::str
     }
 }
 
-void Znc::znccommands(std::string mNick, std::string mAuth, int oas)
+void zncbot::znccommands(std::string mNick, std::string mAuth, int oas)
 {
     UsersInterface& U = Global::Instance().get_Users();
     int oaccess = U.GetOaccess(mNick);
@@ -1070,22 +1328,22 @@ void Znc::znccommands(std::string mNick, std::string mAuth, int oas)
     }
 }
 
-void Znc::SaveConfig()
+void zncbot::SaveConfig()
 {
     std::string returnstr = "PRIVMSG *status :SaveConfig\r\n";
     Send(returnstr);
     boost::shared_ptr<boost::thread> SaveReadThread;
     assert(!SaveReadThread);
-    SaveReadThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&Znc::SaveRead, this)));
+    SaveReadThread = boost::shared_ptr<boost::thread>(new boost::thread(boost::bind(&zncbot::SaveRead, this)));
 }
 
-void Znc::SaveRead()
+void zncbot::SaveRead()
 {
     usleep(5000000);
     ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
 }
 
-void Znc::JoinChannel(std::string mNick)
+void zncbot::JoinChannel(std::string mNick)
 {
     std::string returnstr = "PRIVMSG *send_raw :";
     returnstr = returnstr + mNick;
@@ -1095,7 +1353,7 @@ void Znc::JoinChannel(std::string mNick)
     Send(returnstr);
 }
 
-void Znc::Voice(std::string mNick)
+void zncbot::Voice(std::string mNick)
 {
     std::string returnstr = "PRIVMSG chanserv ";
     returnstr = returnstr + Global::Instance().get_ConfigReader().GetString("znc_idle_channel");
@@ -1105,7 +1363,7 @@ void Znc::Voice(std::string mNick)
     Send(returnstr);
 }
 
-void Znc::Simul(std::string mNick, std::string mSimulString)
+void zncbot::Simul(std::string mNick, std::string mSimulString)
 {
     std::string returnstr = "PRIVMSG *send_raw :";
     returnstr = returnstr + mNick;
@@ -1116,7 +1374,7 @@ void Znc::Simul(std::string mNick, std::string mSimulString)
 }
 
 
-void Znc::timerrun()
+void zncbot::timerrun()
 {
     //cout << "channelbot::timerrun()" << endl;
     int Tijd;
@@ -1139,7 +1397,7 @@ void Znc::timerrun()
     }
 }
 
-void Znc::timerlong()
+void zncbot::timerlong()
 {
     int Tijd;
     time_t t= time(0);
@@ -1159,7 +1417,7 @@ void Znc::timerlong()
 }
 
 
-bool Znc::ReadFile( std::string filename )
+bool zncbot::ReadFile( std::string filename )
 {
     std::cout << "readfile: " << filename << std::endl;
     std::string tmp_user_str;
@@ -1265,7 +1523,7 @@ bool Znc::ReadFile( std::string filename )
     return false;
 }
 
-bool Znc::ReadResetPassText( std::string filename )
+bool zncbot::ReadResetPassText( std::string filename )
 {
     std::cout << "ReadResetPassText readfile: " << filename << std::endl;
     ResetPassText.clear();
@@ -1295,7 +1553,7 @@ bool Znc::ReadResetPassText( std::string filename )
     return false;
 }
 
-bool Znc::ReadAddUserText( std::string filename )
+bool zncbot::ReadAddUserText( std::string filename )
 {
     std::cout << "ReadAddUserText readfile: " << filename << std::endl;
     AddUserText.clear();
@@ -1327,7 +1585,7 @@ bool Znc::ReadAddUserText( std::string filename )
 
 
 
-std::string Znc::generatePwd(int length)
+std::string zncbot::generatePwd(int length)
 {
   std::string out="";
   for(int i=0; i<length; i++)
@@ -1344,3 +1602,4 @@ std::string Znc::generatePwd(int length)
   }
   return out;
 }
+*/
