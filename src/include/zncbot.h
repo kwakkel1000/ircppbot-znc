@@ -62,9 +62,20 @@ class zncbot : public moduleinterface
         //std::shared_ptr< std::thread > m_EventsThread;
         std::shared_ptr< std::thread > m_PrivmsgThread;
 
-//        void version(std::string target, std::string userName);
+        void version(std::string target, std::string userName);
+        void addUser(std::string userName, std::string userAuth, std::string targetAuth, std::string targetUserName, size_t bindAccess);
+        void delUser(std::string userName, std::string userAuth, std::string targetAuth, size_t bindAccess);
+        void resetPassword(std::string userName, std::string userAuth, std::string targetAuth, std::string targetUserName, size_t bindAccess);
+
+        std::string generatePassword(int length);
+        bool fixZncAuth(std::string& targetAuth);
 
 //        void zncCommands(std::string, std::string);
+        bool nickFromHostmask(std::string& data);
+        bool authFromNick(std::string& data);
+        bool deleteFirst(std::string& data, std::string character);
+        bool deleteAll(std::string& data, std::string character);
+
 
 };
 

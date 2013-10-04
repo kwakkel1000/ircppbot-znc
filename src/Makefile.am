@@ -4,7 +4,7 @@ GIT_VERSION = $(shell sh -c 'git describe --abbrev=4 --dirty --always')
 
 ACLOCAL_AMFLAGS = -I ../m4
 
-ZNCBOTLIBRARY_VERSION=0:0:0
+ZNCBOTLIBRARY_VERSION=0:1:0
 
 lib_LTLIBRARIES = libzncbot.la
 

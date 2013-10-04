@@ -32,7 +32,6 @@
 
 
 #include <ircppbot/managementscontainer.h>
-#include <ircppbot/core/botlib.h>
 
 #include <gframe/output.h>
 #include <gframe/versions.h>
@@ -85,8 +84,8 @@ zncbot::~zncbot()
 void zncbot::read()
 {
     m_Run = true;
-    //m_ModesThread = std::shared_ptr<std::thread>(new std::thread(std::bind(&channelbot::parseModes, this)));
-    //m_EventsThread = std::shared_ptr<std::thread>(new std::thread(std::bind(&channelbot::parseEvents, this)));
+    //m_ModesThread = std::shared_ptr<std::thread>(new std::thread(std::bind(&zncbot::parseModes, this)));
+    //m_EventsThread = std::shared_ptr<std::thread>(new std::thread(std::bind(&zncbot::parseEvents, this)));
     m_PrivmsgThread = std::shared_ptr<std::thread>(new std::thread(std::bind(&zncbot::parsePrivmsg, this)));
 }
 
@@ -100,9 +99,9 @@ void zncbot::stop()
     m_IrcData->stop();
     output::instance().addOutput("zncbot::stop", 6);
     //m_ModesThread->join();
-    //output::instance().addOutput("channelbot::stop m_ModesThread stopped", 6);
+    //output::instance().addOutput("zncbot::stop m_ModesThread stopped", 6);
     //m_EventsThread->join();
-    //output::instance().addOutput("channelbot::stop m_EventsThread stopped", 6);
+    //output::instance().addOutput("zncbot::stop m_EventsThread stopped", 6);
     m_PrivmsgThread->join();
     output::instance().addOutput("zncbot::stop m_PrivmsgThread stopped", 6);
     irc::instance().delConsumer(m_IrcData);
@@ -177,7 +176,7 @@ void zncbot::ParseIrcppbotmod(std::vector< std::string > vData)
 */
 void zncbot::parsePrivmsg()
 {
-    output::instance().addOutput("void channelbot::parsePrivmsg()");
+    output::instance().addOutput("void zncbot::parsePrivmsg()");
     std::vector< std::string > data;
     while(m_Run)
     {
@@ -188,10 +187,9 @@ void zncbot::parsePrivmsg()
         }
         int parsed = 0;
 
-        std::string global_trigger = Global::Instance().get_ConfigReader().GetString("libzncbot.globaltrigger");
-        std::string local_trigger = Global::Instance().get_ConfigReader().GetString("libzncbot.localtrigger");
-
-        std::string trigger = configreader::instance().getString("libchannelbot.trigger");
+        std::string global_trigger = configreader::instance().getString("libzncbot.globaltrigger");
+        std::string local_trigger = configreader::instance().getString("libzncbot.localtrigger");
+        bool local = false;
         std::vector< std::string > args;
         std::string firstWord;
         size_t chanpos1 = std::string::npos;
@@ -203,17 +201,22 @@ void zncbot::parsePrivmsg()
         std::string channelName = "";
         std::string command = "";
         std::string userName = data[0];
-        BotLib::HostmaskToNick(userName);
-//        nickFromHostmask(userName);
+        nickFromHostmask(userName);
         if (data.size() >= 4)
         {
             firstWord = data[3];
             deleteFirst(firstWord, ":");
         }
-        triggerpos = firstWord.substr(0, trigger.length()).find(trigger);
-        if (firstWord.substr(0, trigger.length()) == trigger)
+        if (firstWord.substr(0, global_trigger.length()) == global_trigger)
         {
-            firstWord = firstWord.substr(trigger.length());
+            triggerpos = firstWord.substr(0, global_trigger.length()).find(global_trigger);
+            firstWord = firstWord.substr(global_trigger.length());
+        }
+        else if (firstWord.substr(0, local_trigger.length()) == local_trigger)
+        {
+            triggerpos = firstWord.substr(0, local_trigger.length()).find(local_trigger);
+            firstWord = firstWord.substr(local_trigger.length());
+            local = true;
         }
         if (data.size() >= 5)
         {
@@ -336,15 +339,13 @@ void zncbot::parsePrivmsg()
         }
         if (parsed > 1)
         {
-            output::instance().addStatus(false, "void channelbot::parsePrivmsg() parsed > 1???");
+            output::instance().addStatus(false, "void zncbot::parsePrivmsg() parsed > 1???");
         }
         if (parsed != 1)
         {
             continue;
         }
-
         std::string userAuth = "";
-        int userChannelAccess = -1;
         std::shared_ptr<user> l_User = users::instance().get(userName);
         if (l_User != nullptr)
         {
@@ -359,17 +360,7 @@ userAuth = users::instance().getUser(userName).getAuth();
         // if there is a channel, add it to the string, including the amount of access the user has to this channel
         if (channelName != "")
         {
-            //userChannelAccess = channelbotchannels.getChannel(channelName).getAccess(userAuth);
-            std::shared_ptr<cchannel> l_Cchannel = getCchannel(channelName);
-            if (l_Cchannel != nullptr)
-            {
-                std::shared_ptr<cauth> l_Cauth = l_Cchannel->getAuth(userAuth);
-                if (l_Cauth != nullptr)
-                {
-                    userChannelAccess = l_Cauth->getAccess();
-                }
-            }
-            overwatchString = overwatchString + "[" + channelName + ":" + glib::stringFromInt(userChannelAccess) + "] ";
+            overwatchString = overwatchString + "[" + channelName + ":] ";
         }
         else
         {
@@ -385,12 +376,12 @@ userAuth = users::instance().getUser(userName).getAuth();
         overwatchString = overwatchString + command;
 
         // parse the irc command alias to a command
-        int access = 1000;
+        size_t bindAccess = 1000;
         binds::bindelement bindElement;
         if (binds::instance().getBind(bindElement, command, mNAME))
         {
             command = bindElement.command;
-            access = bindElement.access;
+            bindAccess = bindElement.access;
         }
         else
         {
@@ -398,7 +389,7 @@ userAuth = users::instance().getUser(userName).getAuth();
             //return;
         }
         // command is now the alias parsed to a command
-        overwatchString = overwatchString + ":" + command + "(" + glib::stringFromInt(access) + ")";
+        overwatchString = overwatchString + ":" + command + "(" + glib::stringFromInt(bindAccess) + ")";
         // put all the remaining arguments in a string
         for (size_t argsIterator = 0; argsIterator < args.size(); argsIterator++)
         {
@@ -406,6 +397,98 @@ userAuth = users::instance().getUser(userName).getAuth();
         }
         irc::instance().addLowPrioritySendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("overwatchchannel"), overwatchString));
 
+
+        //version
+        if (command == "version")
+        {
+            if (args.size() == 0)
+            {
+                if (channelName != "")
+                {
+                    version(channelName, userName);
+                }
+                else
+                {
+                    version(userName, userName);
+                }
+            }
+            else
+            {
+                //help(command);
+            }
+        }
+
+        if (command == "save")
+        {
+            if (args.size() == 0)
+            {
+//                save();
+            }
+        }
+        if (local)
+        {
+            if (command == "adduser")
+            {
+                if (args.size() == 1)
+                {
+                    std::string targetAuth = args[0];
+                    if (authFromNick(targetAuth))
+                    {
+                        addUser(userName, userAuth, targetAuth, args[0], bindAccess);
+                    }
+                }
+                else if (args.size() == 2)
+                {
+                    std::string targetAuth = args[0];
+                    if (authFromNick(targetAuth))
+                    {
+                        addUser(userName, userAuth, targetAuth, args[1], bindAccess);
+                    }
+                }
+                else
+                {
+                    //help(command);
+                }
+            }
+            if (command == "deluser")
+            {
+                if (args.size() == 1)
+                {
+                    std::string targetAuth = args[0];
+                    if (authFromNick(targetAuth))
+                    {
+                        delUser(userName, userAuth, targetAuth, bindAccess);
+                    }
+                }
+                else
+                {
+                    //help(command);
+                }
+            }
+            if (command == "resetpassword")
+            {
+                if (args.size() == 1)
+                {
+                    std::string targetAuth = args[0];
+                    if (authFromNick(targetAuth))
+                    {
+                        resetPassword(userName, userAuth, targetAuth, args[0], bindAccess);
+                    }
+                }
+                else if (args.size() == 2)
+                {
+                    std::string targetAuth = args[0];
+                    if (authFromNick(targetAuth))
+                    {
+                        resetPassword(userName, userAuth, targetAuth, args[1], bindAccess);
+                    }
+                }
+                else
+                {
+                    //help(command);
+                }
+            }
+        }
     }
 }
 
@@ -420,6 +503,221 @@ void zncbot::version(std::string target, std::string userName)
     }
 }
 
+void zncbot::addUser(std::string userName, std::string userAuth, std::string targetAuth, std::string targetUserName, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        fixZncAuth(targetAuth);
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, configreader::instance().getString("libzncbot.zncport") + ": adding auth: " + targetAuth));
+        std::string l_Password = generatePassword(8);
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "adduser " + targetAuth + " " + l_Password));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "addnetwork " + targetAuth + " " + configreader::instance().getString("libzncbot.ircnetwork")));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "addserver " + targetAuth + " " + configreader::instance().getString("libzncbot.ircnetwork") + " " + configreader::instance().getString("libzncbot.ircserver")));
+
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "Set DenySetBindHost " + targetAuth + " true"));
+
+//        for (size_t 
+
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "znc created by " + userName));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "server is " + configreader::instance().getString("libzncbot.zncserver") + configreader::instance().getString("libzncbot.zncport")));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "login is " + targetAuth + " password is " + l_Password));
+
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, configreader::instance().getString("libzncbot.zncport") + ": added " + targetAuth));
+
+        usleep(1000000);
+//        joinChannel(targetAuth);
+//        SaveConfig();
+    }
+    else
+    {
+        // should be reply
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, "you need " + glib::stringFromInt(bindAccess) + " bot access for this command"));
+    }
+}
+
+void zncbot::delUser(std::string userName, std::string userAuth, std::string targetAuth, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        fixZncAuth(targetAuth);
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "deluser " + targetAuth));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, configreader::instance().getString("libzncbot.zncport") + ": deleted " + targetAuth));
+    }
+    else
+    {
+        // should be reply
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, "you need " + glib::stringFromInt(bindAccess) + " bot access for this command"));
+    }
+}
+
+void zncbot::resetPassword(std::string userName, std::string userAuth, std::string targetAuth, std::string targetUserName, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        fixZncAuth(targetAuth);
+
+        std::string l_Password = generatePassword(8);
+
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "Set Password " + targetAuth + " " + l_Password));
+
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "login is " + targetAuth + " password is " + l_Password));
+
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, configreader::instance().getString("libzncbot.zncport") + ": password resetted for " + targetAuth));
+    }
+    else
+    {
+        // should be reply
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, "you need " + glib::stringFromInt(bindAccess) + " bot access for this command"));
+    }
+}
+
+// should be a lib function
+bool zncbot::nickFromHostmask(std::string& data)
+{
+    std::vector< std::string > who;
+    who = glib::split(data);
+    if (deleteFirst(who[0], ":"))
+    {
+        size_t pos;
+        pos = who[0].find("!");
+        data = who[0].substr(0, pos);
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+// should be a lib function
+bool zncbot::authFromNick(std::string& data)
+{
+    size_t authstar;
+    authstar = data.find("*");
+    if (authstar != std::string::npos)
+    {
+        data.replace(authstar, 1 , "");
+        return true;
+    }
+    else
+    {
+        std::shared_ptr<user> l_User = users::instance().get(data);
+        if (l_User != nullptr)
+        {
+            data = l_User->getAuth().first;
+            return true;
+        }
+    }
+    return false;
+}
+
+// should be a lib function
+bool zncbot::deleteFirst(std::string& data, std::string character)
+{
+    size_t l_Pos;
+    std::string l_TempString = "";
+    l_Pos = data.find(character);
+    if (l_Pos > 0 && l_Pos != std::string::npos)
+    {
+        l_TempString = data.substr(0, l_Pos);
+    }
+    if (l_Pos != std::string::npos && l_Pos < data.length())
+    {
+        l_TempString += data.substr(l_Pos+1);
+    }
+    data = l_TempString;
+    return true;
+}
+
+bool zncbot::deleteAll(std::string& data, std::string character)
+{
+    size_t l_Pos = 0;
+    size_t l_MatchPos = 0;
+    std::string l_TempString = "";
+    while ((l_MatchPos = data.find(character, l_Pos)) != std::string::npos)
+    {
+        l_TempString += data.substr(l_Pos, l_MatchPos - l_Pos);
+        l_Pos = l_MatchPos + 1;
+    }
+    if (l_Pos < data.length())
+    {
+        l_TempString += data.substr(l_Pos+1);
+    }
+    data = l_TempString;
+    return true;
+}
+
+bool zncbot::fixZncAuth(std::string& targetAuth)
+{
+    bool l_Found = true;
+    size_t l_Pos;
+    std::string l_CharacterArray[12] = {"_", "-", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9"};
+    while (l_Found)
+    {
+        l_Found = false;
+        for (size_t l_CharacterArrayIndex = 0; l_CharacterArrayIndex < 12; l_CharacterArrayIndex++)
+        {
+            l_Pos = targetAuth.find(l_CharacterArray[l_CharacterArrayIndex]);
+            if (l_Pos != std::string::npos && l_Pos == 0)
+            {
+                deleteFirst(targetAuth, l_CharacterArray[l_CharacterArrayIndex]);
+                l_Found = true;
+            }
+        }
+    }
+    l_Found = true;
+    std::string l_CharacterArray2[4] = {"`", "'", "\"", "|"};
+    while (l_Found)
+    {
+        l_Found = false;
+        for (size_t l_CharacterArray2Index = 0; l_CharacterArray2Index < 4; l_CharacterArray2Index++)
+        {
+            l_Pos = targetAuth.find(l_CharacterArray2[l_CharacterArray2Index]);
+            if (l_Pos != std::string::npos)
+            {
+                deleteFirst(targetAuth, l_CharacterArray2[l_CharacterArray2Index]);
+                l_Found = true;
+            }
+        }
+    }
+    return true;
+}
+
+std::string zncbot::generatePassword(int length)
+{
+    std::string out="";
+    for(int i=0; i < length; i++)
+    {
+        char chr=rand()%52;
+        if(chr<=25)
+        {
+            out+='A'+chr;
+        }
+        else
+        {
+            out+='a'+chr-26;
+        }
+    }
+    return out;
+}
 /*
 void zncbot::ParsePrivmsg(std::string nick, std::string command, std::string chan, std::vector< std::string > args, int chantrigger)
 {
@@ -1376,7 +1674,7 @@ void zncbot::Simul(std::string mNick, std::string mSimulString)
 
 void zncbot::timerrun()
 {
-    //cout << "channelbot::timerrun()" << endl;
+    //cout << "zncbot::timerrun()" << endl;
     int Tijd;
     time_t t= time(0);
     Tijd = t;

@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.69])
-AC_INIT([ChannelBot], [2.2], [BUG-REPORT-ADDRESS])
+AC_INIT([ZncBot], [2.3], [BUG-REPORT-ADDRESS])
 AC_CANONICAL_TARGET
 AC_CANONICAL_SYSTEM
 AM_INIT_AUTOMAKE()
