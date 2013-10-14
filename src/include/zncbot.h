@@ -63,9 +63,18 @@ class zncbot : public moduleinterface
         std::shared_ptr< std::thread > m_PrivmsgThread;
 
         void version(std::string target, std::string userName);
+        void joinAll(std::string userName, std::string userAuth, size_t bindAccess);
+        void voiceAll(std::string userName, std::string userAuth, size_t bindAccess);
+        void stats(std::string userName, std::string userAuth, std::string target, size_t bindAccess);
+        void listUsers(std::string userName, std::string userAuth, std::string target, size_t bindAccess);
+        void userInfo(std::string userName, std::string userAuth, std::string target, std::string targetUserName, size_t bindAccess);
         void addUser(std::string userName, std::string userAuth, std::string targetAuth, std::string targetUserName, size_t bindAccess);
         void delUser(std::string userName, std::string userAuth, std::string targetAuth, size_t bindAccess);
         void resetPassword(std::string userName, std::string userAuth, std::string targetAuth, std::string targetUserName, size_t bindAccess);
+        void broadcast(std::string userName, std::string userAuth, std::string sendString, size_t bindAccess);
+        void sendAdminAll(std::string userName, std::string userAuth, std::string sendString, size_t bindAccess);
+        void sendAdmin(std::string userName, std::string userAuth, std::string targetUserName, std::string sendString, size_t bindAccess);
+        void sendStatus(std::string userName, std::string userAuth, std::string sendString, size_t bindAccess);
 
         std::string generatePassword(int length);
         bool fixZncAuth(std::string& targetAuth);

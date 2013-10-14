@@ -425,6 +425,172 @@ userAuth = users::instance().getUser(userName).getAuth();
 //                save();
             }
         }
+
+        if (command == "joinall")
+        {
+            if (args.size() == 0)
+            {
+                joinAll(userName, userAuth, bindAccess);
+            }
+            else
+            {
+                //help(command);
+            }
+        }
+
+        if (command == "voiceall")
+        {
+            if (args.size() == 0)
+            {
+                voiceAll(userName, userAuth, bindAccess);
+            }
+            else
+            {
+                //help(command);
+            }
+        }
+
+        if (command == "stats")
+        {
+            if (args.size() == 0)
+            {
+                if (channelName != "")
+                {
+                    stats(userName, userAuth, channelName, bindAccess);
+                }
+                else
+                {
+                    stats(userName, userAuth, userName, bindAccess);
+                }
+            }
+            else
+            {
+                //help(command);
+            }
+        }
+
+        if (command == "broadcast")
+        {
+            if (args.size() >= 1)
+            {
+                std::string argsString;
+                for (size_t argsIndex = 0; argsIndex < args.size()-1; argsIndex++)
+                {
+                    argsString += args[argsIndex] + " ";
+                }
+                if (args.size() > 0)
+                {
+                    argsString += args[args.size()-1];
+                }
+                broadcast(userName, userAuth, argsString, bindAccess);
+            }
+            else
+            {
+                //help(command);
+            }
+        }
+
+        if (command == "sendadminall")
+        {
+            if (args.size() >= 1)
+            {
+                std::string argsString;
+                for (size_t argsIndex = 0; argsIndex < args.size()-1; argsIndex++)
+                {
+                    argsString += args[argsIndex] + " ";
+                }
+                if (args.size() > 0)
+                {
+                    argsString += args[args.size()-1];
+                }
+                sendAdminAll(userName, userAuth, argsString, bindAccess);
+            }
+            else
+            {
+                //help(command);
+            }
+        }
+
+        if (command == "sendadmin")
+        {
+            if (args.size() >= 2)
+            {
+                std::string argsString;
+                for (size_t argsIndex = 1; argsIndex < args.size()-1; argsIndex++)
+                {
+                    argsString += args[argsIndex] + " ";
+                }
+                if (args.size() > 1)
+                {
+                    argsString += args[args.size()-1];
+                }
+                sendAdmin(userName, userAuth, args[0], argsString, bindAccess);
+            }
+            else
+            {
+                //help(command);
+            }
+        }
+
+        if (command == "sendstatus")
+        {
+            if (args.size() >= 1)
+            {
+                std::string argsString = "";
+                for (size_t argsIndex = 0; argsIndex < args.size()-1; argsIndex++)
+                {
+                    argsString += args[argsIndex] + " ";
+                }
+                if (args.size() > 0)
+                {
+                    argsString += args[args.size()-1];
+                }
+                sendStatus(userName, userAuth, argsString, bindAccess);
+            }
+            else
+            {
+                //help(command);
+            }
+        }
+
+        if (command == "listusers")
+        {
+            if (args.size() == 0)
+            {
+                if (channelName != "")
+                {
+                    listUsers(userName, userAuth, channelName, bindAccess);
+                }
+                else
+                {
+                    listUsers(userName, userAuth, userName, bindAccess);
+                }
+            }
+            else
+            {
+                //help(command);
+            }
+        }
+
+        if (command == "userinfo")
+        {
+            if (args.size() == 1)
+            {
+                if (channelName != "")
+                {
+                    userInfo(userName, userAuth, channelName, args[0], bindAccess);
+                }
+                else
+                {
+                    userInfo(userName, userAuth, userName, args[0], bindAccess);
+                }
+            }
+            else
+            {
+                //help(command);
+            }
+        }
+
         if (local)
         {
             if (command == "adduser")
@@ -502,6 +668,77 @@ void zncbot::version(std::string target, std::string userName)
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(target, userName + ": " + versionsVector[versionsVectorIterator]));
     }
 }
+
+void zncbot::joinAll(std::string userName, std::string userAuth, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + "ircppbot", "JoinAll"));
+    }
+}
+
+void zncbot::voiceAll(std::string userName, std::string userAuth, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + "ircppbot", "VoiceAll"));
+    }
+}
+
+void zncbot::stats(std::string userName, std::string userAuth, std::string target, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + "ircppbot", "Stats " + target));
+    }
+}
+
+void zncbot::listUsers(std::string userName, std::string userAuth, std::string target, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + "ircppbot", "GetUsers " + target));
+    }
+}
+
+void zncbot::userInfo(std::string userName, std::string userAuth, std::string target, std::string targetUserName, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + "ircppbot", "Info " + targetUserName + " " + target));
+    }
+}
+
 
 void zncbot::addUser(std::string userName, std::string userAuth, std::string targetAuth, std::string targetUserName, size_t bindAccess)
 {
@@ -588,6 +825,113 @@ void zncbot::resetPassword(std::string userName, std::string userAuth, std::stri
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, "you need " + glib::stringFromInt(bindAccess) + " bot access for this command"));
     }
 }
+
+void zncbot::broadcast(std::string userName, std::string userAuth, std::string sendString, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + "status", "Broadcast " + sendString));
+    }
+    else
+    {
+        // should be reply
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, "you need " + glib::stringFromInt(bindAccess) + " bot access for this command"));
+    }
+}
+
+void zncbot::sendAdminAll(std::string userName, std::string userAuth, std::string sendString, size_t bindAccess)
+{
+/*    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), sendString));
+    }
+    else
+    {
+        // should be reply
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, "you need " + glib::stringFromInt(bindAccess) + " bot access for this command"));
+    }
+
+    UsersInterface& U = Global::Instance().get_Users();
+    if (U.GetOaccess(msNick) >= miOperAccess)
+    {
+        std::string sSearch = "%users%";
+        size_t search_pos;
+        search_pos = msSendString.find(sSearch);
+        if (search_pos != std::string::npos)
+        {
+            std::string sTempSendString;
+            for (unsigned int uiUsersIndex = 0; uiUsersIndex < znc_user_nick.size(); uiUsersIndex++)
+            {
+                if (znc_user_nick[uiUsersIndex] != Global::Instance().get_ConfigReader().GetString("znc_account"))
+                {
+                    sTempSendString = msSendString;
+                    sTempSendString.replace(search_pos, sSearch.length(), znc_user_nick[uiUsersIndex]);
+                    Send(Global::Instance().get_Reply().irc_privmsg("*admin", sTempSendString));
+                }
+            }
+            Send(Global::Instance().get_Reply().irc_privmsg(msChan, Global::Instance().get_ConfigReader().GetString("znc_port") + ": Send to *admin : " + msSendString));
+        }
+        else
+        {
+            Send(Global::Instance().get_Reply().irc_notice(msNick, irc_reply("wrong_input", U.GetLanguage(msNick))));
+        }
+    }
+    else
+    {
+        Send(Global::Instance().get_Reply().irc_notice(msNick, irc_reply("need_oaccess", U.GetLanguage(msNick))));
+    }*/
+}
+
+void zncbot::sendAdmin(std::string userName, std::string userAuth, std::string targetUserName, std::string sendString, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), sendString));
+    }
+    else
+    {
+        // should be reply
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, "you need " + glib::stringFromInt(bindAccess) + " bot access for this command"));
+    }
+}
+
+void zncbot::sendStatus(std::string userName, std::string userAuth, std::string sendString, size_t bindAccess)
+{
+    size_t l_BotAccess = 0;
+    std::shared_ptr<auth> l_Auth = auths::instance().get(userAuth);
+    if (l_Auth != nullptr)
+    {
+        l_BotAccess = l_Auth->getBotAccess();
+    }
+    if (l_BotAccess >= bindAccess)
+    {
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + "status", sendString));
+    }
+    else
+    {
+        // should be reply
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, "you need " + glib::stringFromInt(bindAccess) + " bot access for this command"));
+    }
+}
+
 
 // should be a lib function
 bool zncbot::nickFromHostmask(std::string& data)
