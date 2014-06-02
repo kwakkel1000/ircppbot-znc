@@ -120,7 +120,7 @@ void zncbot::init()
     //ReadFile(Global::Instance().get_ConfigReader().GetString("znc_config_file"));
     //ReadAddUserText(Global::Instance().get_ConfigReader().GetString("znc_addusertext"));
     //ReadResetPassText(Global::Instance().get_ConfigReader().GetString("znc_resetpasstext"));
-
+    srand ( time(NULL) );
     m_IrcData = new ircdata();
     //m_IrcData->setModes(true);
     //m_IrcData->setEvents(true);
@@ -758,12 +758,18 @@ void zncbot::addUser(std::string userName, std::string userAuth, std::string tar
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "addserver " + targetAuth + " " + configreader::instance().getString("libzncbot.ircnetwork") + " " + configreader::instance().getString("libzncbot.ircserver")));
 
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "Set DenySetBindHost " + targetAuth + " true"));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "LoadModule " + targetAuth + " chansaver"));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "LoadModule " + targetAuth + " controlpanel"));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "LoadModule " + targetAuth + " webadmin"));
 
 //        for (size_t 
 
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "znc created by " + userName));
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "server is " + configreader::instance().getString("libzncbot.zncserver") + configreader::instance().getString("libzncbot.zncport")));
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "login is " + targetAuth + " password is " + l_Password));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "/as addmask *@centravi.org"));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "/server -a znc.centravi.org -p " + configreader::instance().getString("libzncbot.zncport") + " -g CentZNC -w " + targetAuth + ":" + l_Password + " -d CentZNC"));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "/server CentZNC"));
 
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, configreader::instance().getString("libzncbot.zncport") + ": added " + targetAuth));
 
@@ -814,8 +820,13 @@ void zncbot::resetPassword(std::string userName, std::string userAuth, std::stri
         std::string l_Password = generatePassword(8);
 
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "Set Password " + targetAuth + " " + l_Password));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "LoadModule " + targetAuth + " chansaver"));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "LoadModule " + targetAuth + " controlpanel"));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(configreader::instance().getString("libzncbot.zncprefix") + configreader::instance().getString("libzncbot.adminmodule"), "LoadModule " + targetAuth + " webadmin"));
 
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "login is " + targetAuth + " password is " + l_Password));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "/server -a znc.centravi.org -p " + configreader::instance().getString("libzncbot.zncport") + " -g CentZNC -w " + targetAuth + ":" + l_Password + " -d CentZNC"));
+        irc::instance().addSendQueue(reply::instance().ircPrivmsg(targetUserName, "/server CentZNC"));
 
         irc::instance().addSendQueue(reply::instance().ircPrivmsg(userName, configreader::instance().getString("libzncbot.zncport") + ": password resetted for " + targetAuth));
     }
